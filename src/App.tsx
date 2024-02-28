@@ -1,26 +1,40 @@
 import { useEffect, useState } from 'react'
-// import reactLogo from './assets/react.svg'
-// import viteLogo from '/vite.svg'
-// import './App.css'
 import axios from 'axios';
+import Chart from './components/Chart';
+import './App.css';
+import Bitcoin from './components/Bitcoin';
 //https://startatage30.tistory.com/29
 //위에거를 일단 클론코딩하자. 코인종목 옆에 가격 실시간
 //cors 이슈 해결해야
 /*
-1. 차트 컴포넌트 만들어보기
-https://www.npmjs.com/package/lightweight-charts
-2. 소켓통신으로 그 블로그처럼 해보기
+1. 비트코인 가격데이터로 차트컴포넌트 만들기
 
+2. CoinList컴포넌트로 옮기기
+3. Coin컴포넌트 디자인 예쁘게
+4. 소켓통신으로 그 블로그처럼 해보기
+5. 인피니티 스크롤 + 페이지네이션?
+
+어려우니 먼저 비트코인 컴포넌트부터 만들기로... 
+object Blob이 먼지...? (gpt 답변)
+ VM1750:1 Uncaught SyntaxError: Unexpected token 'o', "[object Blob]" is not valid JSON
+    at JSON.parse (<anonymous>)
+    at ws.onmessage (Bitcoin.tsx:21:39)
 */
+
+interface Market {
+  market: string;
+  korean_name: string;
+  english_name: string;
+}
 function App() {
-  const [data, setData] = useState(null);//
-  const [charts, setChart] = useState([]);
+  const [markets, setMarkets] = useState<Market[]>([]);//
   const [btc, setBTC] = useState(null);
 
   useEffect(() => {
-    axios.get("https://api.upbit.com/v1/market/all?isDetails=true")
+    //코인 티커 가져오기
+    axios.get("https://api.upbit.com/v1/market/all?isDetails=false")
       .then(response => {
-        setData(response.data);
+        setMarkets(response.data);
       })
       .catch(error => {
         console.error('Error:', error);
@@ -31,17 +45,33 @@ function App() {
       .then(response => setBTC(response.data))
       .catch(err => console.log(err));
   }, []);
-  useEffect(() => {
-    //console.log("data:", data);
-    console.log("btc candle", btc);
-  }, [btc])
+  // useEffect(() => {
+  //   console.log("data:", markets);
+  //   console.log("btc candle", btc);
 
+  // }, [markets, btc])
+  const coinList = () => {
+    return (<>
+      <ul className='coin-list'>
+        {markets.map((market, index) => (<li key={index}>
+          <span className='coin-idx'>{index + 1}</span>
+          <strong>{market.korean_name}</strong>
+          <span>{market.english_name}</span>
+          <span>가격:</span>
+        </li>))}
+      </ul>
+
+    </>)
+  }
   return (
     <>
       {/* 데이터를 화면에 표시하는 코드 */}
+      <Chart />
+      {/* <Bitcoin /> */}
       괄호문제는 왜 안되는지 꼭확인할것
       syntax error input~
       SyntaxError: Unexpected end of input
+      {coinList()}
     </>
   )
 }

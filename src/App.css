@@ -40,3 +40,26 @@
 .read-the-docs {
   color: #888;
 } */
+.coin-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.coin-list li {
+  margin-bottom: 10px;
+  border-bottom: 1px solid #ccc;
+  padding: 10px 0;
+}
+
+.coin-list li strong {
+  font-weight: bold;
+}
+
+.coin-list li span {
+  margin-left: 10px;
+}
+
+.coin-idx {
+  font-weight: bold;
+  margin-right: 10px;
+}
