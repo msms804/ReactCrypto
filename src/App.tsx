@@ -3,6 +3,8 @@ import axios from 'axios';
 import Chart from './components/Chart';
 import './App.css';
 import Bitcoin from './components/Bitcoin';
+import Navbar from './layouts/Navbar';
+import HalvingCountdown from './components/HalvingCountdown';
 //https://startatage30.tistory.com/29
 //위에거를 일단 클론코딩하자. 코인종목 옆에 가격 실시간
 //cors 이슈 해결해야
@@ -66,11 +68,13 @@ function App() {
   return (
     <>
       {/* 데이터를 화면에 표시하는 코드 */}
-      <Chart />
-      {/* <Bitcoin /> */}
-      괄호문제는 왜 안되는지 꼭확인할것
+      {/* <Chart /> */}
+      <Navbar />
+      <Bitcoin />
+      <HalvingCountdown />
+      {/* 괄호문제는 왜 안되는지 꼭확인할것
       syntax error input~
-      SyntaxError: Unexpected end of input
+      SyntaxError: Unexpected end of input */}
       {coinList()}
     </>
   )
