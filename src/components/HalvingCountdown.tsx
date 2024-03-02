@@ -38,9 +38,9 @@ const HalvingCountdown = () => {
     }, [currentTime])
 
     return (<>
-        <div>현재시간 : {currentTime}</div>
+        {/* <div>현재시간 : {currentTime}</div>
         <div> 4번째 반감기 : {halvingTime}</div>
-        <div> 남은기간 : {diffTime}</div>
+        <div> 남은기간 : {diffTime}</div> */}
         <div> Days : {daysLeft} / Hours : {hoursLeft} / Minutes: {minutesLeft} / Seconds : {secondsLeft}</div>
         {/*days / hours / minutes / seconds 다 따로 테일윈드로 꾸미기 */}
     </>)

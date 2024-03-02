@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios';
-import Chart from './components/Chart';
+import BitcoinChart from './components/BitcoinChart';
 import './App.css';
 import Bitcoin from './components/Bitcoin';
 import Navbar from './layouts/Navbar';
 import HalvingCountdown from './components/HalvingCountdown';
+import CoinList from './components/CoinList';
 //https://startatage30.tistory.com/29
 //위에거를 일단 클론코딩하자. 코인종목 옆에 가격 실시간
 //cors 이슈 해결해야
@@ -23,25 +24,10 @@ object Blob이 먼지...? (gpt 답변)
     at ws.onmessage (Bitcoin.tsx:21:39)
 */
 
-interface Market {
-  market: string;
-  korean_name: string;
-  english_name: string;
-}
 function App() {
-  const [markets, setMarkets] = useState<Market[]>([]);//
   const [btc, setBTC] = useState(null);
 
   useEffect(() => {
-    //코인 티커 가져오기
-    axios.get("https://api.upbit.com/v1/market/all?isDetails=false")
-      .then(response => {
-        setMarkets(response.data);
-      })
-      .catch(error => {
-        console.error('Error:', error);
-      });
-
     //일 캔들 가져오기
     axios.get("https://api.upbit.com/v1/candles/days?market=KRW-BTC&count=200")
       .then(response => setBTC(response.data))
@@ -52,30 +38,18 @@ function App() {
   //   console.log("btc candle", btc);
 
   // }, [markets, btc])
-  const coinList = () => {
-    return (<>
-      <ul className='coin-list'>
-        {markets.map((market, index) => (<li key={index}>
-          <span className='coin-idx'>{index + 1}</span>
-          <strong>{market.korean_name}</strong>
-          <span>{market.english_name}</span>
-          <span>가격:</span>
-        </li>))}
-      </ul>
 
-    </>)
-  }
   return (
     <>
-      {/* 데이터를 화면에 표시하는 코드 */}
       {/* <Chart /> */}
       <Navbar />
+      <BitcoinChart />
       <Bitcoin />
       <HalvingCountdown />
+      <CoinList />
       {/* 괄호문제는 왜 안되는지 꼭확인할것
       syntax error input~
       SyntaxError: Unexpected end of input */}
-      {coinList()}
     </>
   )
 }

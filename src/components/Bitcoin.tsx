@@ -9,10 +9,19 @@ import { v4 as uuidv4 } from 'uuid';
  * 5. 현재가격 (원 , 달러, 1일 상승퍼센테이지)
  * 남은 데이 어케구함
  * 1/1~현재날짜 구하고, 1/1반감기날짜 구해서 빼기?
+ * 
+ * 모달창 만들기
  */
 const Bitcoin = () => {
     const [btc, setBTC] = useState<number | null>(null);
     const [rate, setRate] = useState<number | null>(null);
+    const [hover, setIsHover] = useState(false);
+
+    const modal = () => {
+        if (hover === true) {
+            setIsHover(false);
+        }
+    }
     useEffect(() => {
         const ws = new WebSocket("wss://api.upbit.com/websocket/v1");
 
@@ -49,6 +58,7 @@ const Bitcoin = () => {
     useEffect(() => {
         console.log(btc)
     }, [btc]);
+
     return (<>
         <strong>현재 비트코인가격은 : {btc}원</strong>
         <div>전일대비 : {rate} %</div>

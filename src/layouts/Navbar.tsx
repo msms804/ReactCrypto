@@ -22,7 +22,7 @@ const Navbar = () => {
                     {/* 추가적인 네비게이션 요소, 예를 들면 로그인 버튼 */}
                     <div className="hidden md:block">
                         <div className="ml-4 flex items-center md:ml-6">
-                            <button className="bg-gray-800 text-white px-3 py-2 rounded-md text-sm font-medium">Login</button>
+                            <button className="bg-white text-gray px-3 py-2 rounded-md text-sm font-medium">bitcoin</button>
                         </div>
                     </div>
                 </div>
