@@ -6,6 +6,9 @@ import Bitcoin from './components/Bitcoin';
 import Navbar from './layouts/Navbar';
 import HalvingCountdown from './components/HalvingCountdown';
 import CoinList from './components/CoinList';
+import Grid1 from './layouts/Grid1';
+import Grid2 from './layouts/Grid2';
+import Grid3 from './layouts/Grid3';
 //https://startatage30.tistory.com/29
 //위에거를 일단 클론코딩하자. 코인종목 옆에 가격 실시간
 //cors 이슈 해결해야
@@ -43,10 +46,18 @@ function App() {
     <>
       {/* <Chart /> */}
       <Navbar />
-      <BitcoinChart />
+      <div className='flex h-screen'>
+        <div className='flex flex-col w-8/12'>
+          <Grid1 />
+          <Grid3 />
+        </div>
+        <div className='flex w-4/12'>
+          <Grid2 />
+        </div>
+      </div>
       <Bitcoin />
       <HalvingCountdown />
-      <CoinList />
+      {/* <CoinList /> */}
       {/* 괄호문제는 왜 안되는지 꼭확인할것
       syntax error input~
       SyntaxError: Unexpected end of input */}
