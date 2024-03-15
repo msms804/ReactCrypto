@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
  */
 const Bitcoin = () => {
     const [btc, setBTC] = useState<number | null>(null);
+    const [ticker, setTicker] = useState(null);
     const [rate, setRate] = useState<number | null>(null);
     const [hover, setIsHover] = useState(false);
 
@@ -43,7 +44,8 @@ const Bitcoin = () => {
                 const decoder = new TextDecoder('utf-8');
                 const text = decoder.decode(buffer);
                 const receivedData = JSON.parse(text);
-                setBTC(receivedData.trade_price)
+                setBTC(receivedData.trade_price);
+                setTicker(receivedData.code);
                 setRate(parseFloat((receivedData.signed_change_rate * 100).toFixed(2)));
             });
         }
@@ -61,6 +63,7 @@ const Bitcoin = () => {
 
     return (<>
         <strong>현재 비트코인가격은 : {btc}원</strong>
+        <div>비트코인 티커는 : {ticker}</div>
         <div>전일대비 : {rate} %</div>
     </>)
 }
