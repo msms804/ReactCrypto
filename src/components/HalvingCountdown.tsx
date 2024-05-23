@@ -8,6 +8,7 @@ const HalvingCountdown = () => {
     const [hoursLeft, setHoursLeft] = useState(0)
     const [minutesLeft, setMinutesLeft] = useState(0)
     const [secondsLeft, setSecondsLeft] = useState(0)
+    const [openModal, setOpenModal] = useState(false);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -42,7 +43,52 @@ const HalvingCountdown = () => {
         <div> 4번째 반감기 : {halvingTime}</div>
         <div> 남은기간 : {diffTime}</div> */}
         <div> Days : {daysLeft} / Hours : {hoursLeft} / Minutes: {minutesLeft} / Seconds : {secondsLeft}</div>
+        <div className="grid grid-flow-col gap-5 text-center auto-cols-max">
+            {/* <div className="flex flex-col p-2 bg-neutral rounded-box text-neutral-content">
+                <span className="countdown font-mono text-5xl">
+                    {daysLeft}
+                </span>
+                days
+            </div> */}
+            {/* <div className="flex flex-col p-2 bg-neutral rounded-box text-neutral-content">
+                <span className="countdown font-mono text-5xl">
+                    {hoursLeft}
+                </span>
+                hours
+            </div> */}
+            {/* <div className="flex flex-col p-2 bg-neutral rounded-box text-neutral-content">
+                <span className="countdown font-mono text-5xl">
+                    {minutesLeft}
+                </span>
+                min
+            </div> */}
+            {/* <div className="flex flex-col p-2 bg-neutral rounded-box text-neutral-content">
+                <span className="countdown font-mono text-5xl">
+                    {secondsLeft}
+                </span>
+                sec
+            </div> */}
+        </div>
+
         {/*days / hours / minutes / seconds 다 따로 테일윈드로 꾸미기 */}
+        {/* Open the modal using document.getElementById('ID').showModal() method */}
+
+
+        {/* <button className="btn" onClick={() => {
+            const modal = document.getElementById('my_modal_1') as HTMLDialogElement | null;
+            if (modal) modal.showModal();
+        }}>open modal</button>
+        <dialog id="my_modal_1" className="modal">
+            <div className="modal-box">
+                <h3 className="font-bold text-lg">Hello!</h3>
+                <p className="py-4">Press ESC key or click the button below to close</p>
+                <div className="modal-action">
+                    <form method="dialog">
+                        <button className="btn">Close</button>
+                    </form>
+                </div>
+            </div>
+        </dialog> */}
     </>)
 }
 export default HalvingCountdown;

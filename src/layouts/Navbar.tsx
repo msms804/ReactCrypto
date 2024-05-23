@@ -14,8 +14,8 @@ const Navbar = () => {
                         <div className="hidden md:block">
                             {/* 네비게이션 링크들 */}
                             <div className="ml-10 flex items-baseline space-x-4">
-                                <a href="#" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">시황</a>
-                                <a href="#" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">BitCoin</a>
+                                <a href="#" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">테마</a>
+                                <a href="#" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">김프</a>
                             </div>
                         </div>
                     </div>

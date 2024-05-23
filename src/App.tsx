@@ -9,6 +9,13 @@ import CoinList from './components/CoinList';
 import Grid1 from './layouts/Grid1';
 import Grid2 from './layouts/Grid2';
 import Grid3 from './layouts/Grid3';
+import { Router } from 'react-router-dom';
+import { Theme } from './pages/Theme';
+import { KimchiPremium } from './pages/KimchiPremium';
+import { Routes, Route } from 'react-router-dom'
+import { Mainpage } from './pages/Mainpage';
+
+//import {Route} from "re"
 //https://startatage30.tistory.com/29
 //위에거를 일단 클론코딩하자. 코인종목 옆에 가격 실시간
 //cors 이슈 해결해야
@@ -28,25 +35,23 @@ object Blob이 먼지...? (gpt 답변)
 */
 
 function App() {
-  const [btc, setBTC] = useState(null);
 
-  useEffect(() => {
-    //일 캔들 가져오기
-    axios.get("https://api.upbit.com/v1/candles/days?market=KRW-BTC&count=200")
-      .then(response => setBTC(response.data))
-      .catch(err => console.log(err));
-  }, []);
-  // useEffect(() => {
-  //   console.log("data:", markets);
-  //   console.log("btc candle", btc);
-
-  // }, [markets, btc])
 
   return (
     <>
-      {/* <Chart /> */}
-      <Navbar />
-      <div className='flex h-screen'>
+      <div className='flex flex-col min-h-screen'>
+        <Navbar />
+        <div className='flex-grow'>
+          <Routes>
+            <Route path='/' element={<Mainpage />} />
+            <Route path="theme" element={<Theme />} />
+            <Route path="kimchi-premium" element={<KimchiPremium />} />
+          </Routes>
+        </div>
+      </div>
+
+
+      {/* <div className='flex h-screen'>
         <div className='flex flex-col w-8/12'>
           <Grid1 />
           <Grid3 />
@@ -56,11 +61,10 @@ function App() {
         </div>
       </div>
       <Bitcoin />
-      <HalvingCountdown />
+      <HalvingCountdown /> */}
       {/* <CoinList /> */}
-      {/* 괄호문제는 왜 안되는지 꼭확인할것
-      syntax error input~
-      SyntaxError: Unexpected end of input */}
+      {/* <Chart /> */}
+
     </>
   )
 }
