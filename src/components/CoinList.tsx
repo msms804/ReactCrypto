@@ -9,30 +9,80 @@ interface Market {
     english_name: string;
     price: number;
 }
+interface ticker {
+    market: string;
+    korean_name: string;
+    english_name: string;
+    price: number;
+    change: string;
+    signed_change_price: number;
+    signed_change_rate: number;
+    acc_trade_price_24h: number;
+    trade_price: number;
+}
 
 const CoinList = () => {
     const [markets, setMarkets] = useState<Market[]>([]);
     const [bitTicker, setBitTicker] = useState();
     const [prices, setPrices] = useState();
-
-    const [tickers, setTickers] = useState([]);
+    const [symbols, setSymbols] = useState<Market[]>([]);   //모든티커
+    const [krwCoins, setKrwCoins] = useState<Market[]>([]);//KRW- 로시작하는 코인
+    const [usdtCoins, setUsdtCoins] = useState<Market[]>([]);//USDT- 로시작하는 코인
     const [allPrices, setAllPrices] = useState<string[] | undefined>();
+    const [coins, setCoins] = useState<Market[]>([]);
+    const [updatedCoins, setUpdatedCoins] = useState<ticker[]>([]);
+    /**
+     * 1. 코인 마켓 분류
+     * 2. 해당코인들의 24시간 누적 거래대금
+     */
+    const fetchMarketData = async () => {//마켓 분류 코드 (krw / usd)
+        try {
+            const result = await axios.get("https://api.upbit.com/v1/market/all?isDetails=false");
+            const newSymbols = result.data.map((item: any) => item.market);
+            const krwMarket = result.data.filter((item: any) => item.market.startsWith('KRW-'))
+            const usdtMarket = result.data.filter((item: any) => item.market.startsWith('USDT-'))
+            setKrwCoins(krwMarket);
+            setUsdtCoins(usdtMarket);
+            setCoins(result.data);
+            setSymbols(newSymbols);
 
-    useEffect(() => {//코인티커 가져오기
-        axios.get("https://api.upbit.com/v1/market/all?isDetails=false")
-            .then(response => {
-                setMarkets(response.data)
-                //setTickers(response.data.market)
-            })
-            .catch(error => {
-                console.error("error: ", error);
-            })
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    useEffect(() => {
+        fetchMarketData();
     }, [])
 
     useEffect(() => {
-        const marketList = markets.map(item => item.market);
-        setAllPrices(marketList);
-    }, [markets])
+        const fetchCoinData = async () => {
+            const tickerResult = await axios.get('https://api.upbit.com/v1/ticker', {
+                params: { markets: symbols.join(',') }
+            })
+            console.log("대굴빡", tickerResult.data);
+            const updatedCoins = coins.map((coin, index) => ({
+                ...coin,
+                ...tickerResult.data[index]
+            }))
+            console.log("최종:", updatedCoins);
+            setUpdatedCoins(updatedCoins);
+
+        }
+        fetchCoinData();
+        //ㅇㅎ.. 지금갖고온데이터랑 위의 데이터 합쳐야..
+        //어케해야할까..
+
+    }, [symbols, coins])
+
+
+    useEffect(() => {
+        console.log("분류작업", krwCoins);
+        console.log("분류작업2", usdtCoins);
+        console.log("모든티커", symbols)
+    }, [krwCoins, usdtCoins, symbols])
+
 
     useEffect(() => {
         const ws = new WebSocket("wss://api.upbit.com/websocket/v1");
@@ -42,7 +92,7 @@ const CoinList = () => {
             ws.send(JSON.stringify([
                 { "ticket": uuidv4() },
                 //1. 여기서 "codes"에 보내는거 markets의 모든 market로 매핑?해서 보내야
-                { "type": "ticker", "codes": ["KRW-BTC"] },
+                { "type": "ticker", "codes": symbols },
                 //{ "type": "ticker", "codes": allPrices },//allPrices를 deps에 넣어야..??
                 { "format": "DEFAULT" },
             ]));
@@ -57,18 +107,16 @@ const CoinList = () => {
                 const decoder = new TextDecoder('utf-8');
                 const text = decoder.decode(buffer);
                 const receivedData = JSON.parse(text);
-                setBitTicker(receivedData.code);
+                console.log("받은데이터", receivedData)
+                //여기서 매핑해야
+                setUpdatedCoins(prev => prev.map(coin =>
+                    (coin.market === receivedData.code) ? { ...coin, ...receivedData } : coin))
+                //setBitTicker(receivedData.code);
                 //setPrices(prevPrices => [...prevPrices, receivedData.trade_price]);
-                setPrices(receivedData.trade_price);
+                //setPrices(receivedData.trade_price);
                 //여기다 tickers에 티커네임만 매핑해야
-                //2. 여기서 모든 가격 받아야
 
-                /**
-                 * 3/20 할것 --> 수도코드임
-                 * 1. 일단 marketList를 리스트가 아니라 객체로 만들어야할수도..?
-                 * 2. 소켓에서 데이터 받아오면
-                 * 3. marketList에서 티커에 해당하는 가격 갈아끼움
-                 */
+
             });
         }
         ws.onclose = () => {
@@ -78,22 +126,13 @@ const CoinList = () => {
         return () => {
             ws.close();
         }
-    }, [])
-    useEffect(() => {
-        //console.log("markets : ", markets)
-        console.log("새로만든 가격리스트 : ", allPrices)
-    }, [allPrices])
-
-    useEffect(() => {
-        console.log("소켓으로 받은가격", prices)
-    }, [prices])
-
-    useEffect(() => {//3. 네임에 해당하는 가격들 매핑하고 렌더링
-        if (prices !== undefined && bitTicker === markets[0]?.market) {
-            const copyData = markets.map(coin => ({ ...coin, price: prices }));
-            setMarkets(copyData);
-        }
-    }, [bitTicker, markets[0]?.market, prices])
+    }, [symbols])
+    // useEffect(() => {//3. 네임에 해당하는 가격들 매핑하고 렌더링
+    //     if (prices !== undefined && bitTicker === markets[0]?.market) {
+    //         const copyData = markets.map(coin => ({ ...coin, price: prices }));
+    //         setMarkets(copyData);
+    //     }
+    // }, [bitTicker, markets[0]?.market, prices])
 
     /** 알고리즘
      * 1. market을 담을 수 있는 state 변수 만든다
@@ -106,17 +145,62 @@ const CoinList = () => {
      * 2. if 소켓으로 가져온 비트의 티커가 markets의 티커와 같다면 --> o
      * 3. markets 객체에 삽입(가격정보를) 
      * 4. 삽입은 spread연산자로
+     * 
+     * -- 7days차트
+     * 
+     * 2. 가격 get요청으로 불러와서 맞는 티커?에 매핑?
+     * 3. 7days 이렇게 차트만들수 있을듯 
+     * 
+     * --페이지네이션
+     * 1. krw/ btc나눠서 state에 저장
+     * 2. 10개씩 불러온다?
+     * 3. 밑에 1 2 3 4 ... 이렇게 표시해야
      */
     return (<>
-        <ul>
-            {markets.slice(0, 10).map((market, index) => (<li key={index} className="flex items-center py-4">
-                <span className="text-gray-600">{index + 1}</span>
-                <strong className="m1-4">{market.korean_name}</strong>
-                <span className="m1-auto mr-4 text-gray-500">{market.korean_name}</span>
-                <span className="text-gray-500">{market.english_name}</span>
-                <span className="text-gray-900">현재가 : {market.price}</span>
-            </li>))}
-        </ul>
+        <div className="container mx-auto mt-8">
+            <div className="flex flex-row space-x-2">
+                <div className="rounded-full border-2 p-1">원화</div>
+                <div className="rounded-full border-2 p-1">USDT</div>
+                <div className="rounded-full border-2 p-1">BTC</div>
+            </div>
+            <table className="min-w-full bg-white">
+                <thead>
+                    <tr>
+                        <th className="py-2 bg-gray-100 border-b text-left"></th>
+                        <th className="py-2 bg-gray-100 border-b text-left">#</th>
+                        <th className="py-2 bg-gray-100 border-b text-left">코인명</th>
+                        <th className="py-2 bg-gray-100 border-b text-left">가격</th>
+                        <th className="py-2 bg-gray-100 border-b text-left">등락폭(24h)</th>
+
+                        <th className="py-2 bg-gray-100 border-b text-left">시가총액</th>
+                        <th className="py-2 bg-gray-100 border-b text-left">24h 거래대금</th>
+                        <th className="py-2 bg-gray-100 border-b text-left">7D</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {updatedCoins.map((item, index) => (
+                        <tr key={index}>
+                            <td>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 w-3 h-3">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+                                </svg>
+                            </td>
+                            <td className="py-2 px-4 border-b">{index + 1}</td>
+                            <td><img src="" alt="코인이미지" className="w-6 h-6 mr-2" />{item.korean_name}</td>
+                            <td>{item.trade_price}</td>
+                            <td>등락폭</td>
+                            <td>시가총액</td>
+                            <td> {item.acc_trade_price_24h}</td>
+                            <td>7일간 차트</td>
+
+                        </tr>
+                    ))}
+
+                </tbody>
+            </table>
+
+        </div>
+
     </>)
 }
 export default CoinList;
