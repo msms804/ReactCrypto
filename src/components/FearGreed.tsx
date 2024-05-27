@@ -9,21 +9,21 @@ import moment from 'moment';
 
 export const FearGreed = () => {
     const [fearGreedIdx, setFearGreedIdx] = useState<number | null>(null);
-    const [oneDayAgo, setOneDayAgo] = useState();
-    const [sevenDaysAgo, setSevenDaysAgo] = useState();
-    const [oneMonthAgo, setOneMonthAgo] = useState();
+    const [oneDayAgo, setOneDayAgo] = useState<number | null>(null);
+    const [sevenDaysAgo, setSevenDaysAgo] = useState<number | null>(null);
+    const [oneMonthAgo, setOneMonthAgo] = useState<number | null>(null);
     const chartOptions: ApexOptions = {
         chart: {
             type: 'radialBar',
-            offsetY: -20,
+            offsetY: 0,
             sparkline: {
                 enabled: true
             }
         },
         plotOptions: {
             radialBar: {
-                startAngle: 0,//-90
-                endAngle: -360,   //90
+                startAngle: -360,//-90
+                endAngle: 0,   //90
                 track: {
                     background: '#e7e7e7',
                     strokeWidth: '97%',
@@ -34,7 +34,7 @@ export const FearGreed = () => {
                         show: false
                     },
                     value: {
-                        offsetY: 5,
+                        offsetY: 10,
                         fontSize: '18px',
                         formatter: function (val) {
                             return Math.round(val).toString();
@@ -54,15 +54,15 @@ export const FearGreed = () => {
     const chartOptions2: ApexOptions = {
         chart: {
             type: 'radialBar',
-            offsetY: -20,
+            offsetY: 0,
             sparkline: {
                 enabled: true
             }
         },
         plotOptions: {
             radialBar: {
-                startAngle: 90,//-90
-                endAngle: -90,   //90
+                startAngle: 0,//-90
+                endAngle: -360,   //90
                 track: {
                     background: '#e7e7e7',
                     strokeWidth: '97%',
@@ -73,8 +73,8 @@ export const FearGreed = () => {
                         show: false
                     },
                     value: {
-                        offsetY: 5,
-                        fontSize: '18px',
+                        offsetY: 8,
+                        fontSize: '16px',
                         formatter: function (val) {
                             return Math.round(val).toString();
                         }
@@ -91,7 +91,7 @@ export const FearGreed = () => {
         colors: ['#00E396', '#FEB019', '#FF4560']
     };
     const chartSeries = fearGreedIdx !== null ? [fearGreedIdx] : [];
-
+    const chartSeries2 = [oneDayAgo, sevenDaysAgo, oneMonthAgo];
     const getFearGreedIdx = async () => {
         try {
             const response = await axios.get('https://api.alternative.me/fng/', {
@@ -125,7 +125,6 @@ export const FearGreed = () => {
             const oneDayAgoData = filterData(oneDayAgoTimestamp);
             const sevenDaysAgoData = filterData(sevenDaysAgoTimestamp);
             const oneMonthAgoData = filterData(oneMonthAgoTimestamp);
-            console.log("씨이발", todayData, oneDayAgoData)
             setOneDayAgo(oneDayAgoData.value);
             setSevenDaysAgo(sevenDaysAgoData.value);
             setOneMonthAgo(oneMonthAgoData.value);
@@ -147,15 +146,22 @@ export const FearGreed = () => {
         <div className='flex flex-row x-2'>
             <div className='bg-gray-100 w-3/5 rounded-xl mr-2'>
                 {fearGreedIdx !== null ? (
-                    <ReactApexChart options={chartOptions} series={chartSeries} type="radialBar" height="200" />
+                    <ReactApexChart options={chartOptions} series={chartSeries} type="radialBar" height="150" />
                 ) : (
                     <div>Loading...</div> // 로딩 중일 때 표시
                 )}
             </div>
             <div className='w-2/5 flex flex-col'>
-                {oneDayAgo && <div className='bg-gray-100 mb-2 h-1/3'>어제: {oneDayAgo} </div>}
-                {sevenDaysAgo && <div className='bg-gray-100 mb-2 h-1/3'>7일전: {sevenDaysAgo} </div>}
-                {oneMonthAgo && <div className='bg-gray-100 h-1/3'>1달전: {oneMonthAgo} </div>}
+                {oneDayAgo !== null && <div className='bg-gray-100 mb-2 h-1/3 rounded-xl'>
+                    <ReactApexChart options={chartOptions2} series={[oneDayAgo]} type="radialBar" height="70" />
+                </div>}
+                {sevenDaysAgo && <div className='bg-gray-100 mb-2 h-1/3 rounded-xl'>
+                    <ReactApexChart options={chartOptions2} series={[sevenDaysAgo]} type="radialBar" height="70" />
+
+                </div>}
+                {oneMonthAgo && <div className='bg-gray-100 h-1/3 rounded-xl'>
+                    <ReactApexChart options={chartOptions2} series={[oneMonthAgo]} type="radialBar" height="70" />
+                </div>}
             </div>
         </div>
 
