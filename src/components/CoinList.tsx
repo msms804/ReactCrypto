@@ -158,10 +158,11 @@ const CoinList = () => {
      */
     return (<>
         <div className="container mx-auto mt-8">
-            <div className="flex flex-row space-x-2">
-                <div className="rounded-full border-2 p-1">원화</div>
-                <div className="rounded-full border-2 p-1">USDT</div>
-                <div className="rounded-full border-2 p-1">BTC</div>
+            <div className="flex flex-row space-x-2 ">{/**왜 이렇게 밑에 넣어야함;;; */}
+                <div className=" flex flex-row bg-slate-100 rounded-full p-1 space-x-2">
+                    <div className="rounded-full p-2 bg-white text-sm">원화</div>
+                    <div className="rounded-full p-2 bg-white text-sm">USDT</div>
+                </div>
             </div>
             <table className="min-w-full bg-white">
                 <thead>
@@ -173,7 +174,7 @@ const CoinList = () => {
                         <th className="py-2 bg-gray-100 border-b text-left">등락폭(24h)</th>
 
                         <th className="py-2 bg-gray-100 border-b text-left">시가총액</th>
-                        <th className="py-2 bg-gray-100 border-b text-left">24h 거래대금</th>
+                        <th className="py-2 bg-gray-100 border-b text-left">거래대금(24h)</th>
                         <th className="py-2 bg-gray-100 border-b text-left">7D</th>
                     </tr>
                 </thead>
@@ -186,11 +187,11 @@ const CoinList = () => {
                                 </svg>
                             </td>
                             <td className="py-2 px-4 border-b">{index + 1}</td>
-                            <td><img src="" alt="코인이미지" className="w-6 h-6 mr-2" />{item.korean_name}</td>
-                            <td>{item.trade_price}</td>
-                            <td>등락폭</td>
+                            <td>{item.korean_name}</td>
+                            <td>{item.trade_price.toLocaleString('ko-KR')}</td>
+                            <td>{(item.signed_change_rate * 100).toFixed(2)}%</td>
                             <td>시가총액</td>
-                            <td> {item.acc_trade_price_24h}</td>
+                            <td> {item.acc_trade_price_24h.toLocaleString('ko-KR')}</td>
                             <td>7일간 차트</td>
 
                         </tr>

@@ -10,7 +10,7 @@ export const BtcDominance = () => {
         }
         const chart = createChart(container, {
             width: container.clientWidth,
-            height: 400,
+            height: 200,
             layout: {
                 background: { color: '#ffffff' },
                 textColor: '#000000',
@@ -32,7 +32,7 @@ export const BtcDominance = () => {
         });
 
         const candleSeries = chart.addCandlestickSeries();
-        fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=100')
+        fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=365')
             .then(response => response.json())
             .then(data => {
                 const chartData = data.map((item: any) => ({

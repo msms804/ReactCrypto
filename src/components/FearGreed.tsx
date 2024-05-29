@@ -143,24 +143,79 @@ export const FearGreed = () => {
         getFearGreedIdx();
     }, [])
     return (<>
-        <div className='flex flex-row x-2'>
-            <div className='bg-gray-100 w-3/5 rounded-xl mr-2'>
-                {fearGreedIdx !== null ? (
-                    <ReactApexChart options={chartOptions} series={chartSeries} type="radialBar" height="150" />
-                ) : (
-                    <div>Loading...</div> // 로딩 중일 때 표시
-                )}
+        <div className='flex flex-row space-x-2'>
+            <div className='bg-gray-100 w-3/5 rounded-xl'>
+                <div className='place-items-start'>
+                    {fearGreedIdx !== null ? (
+                        <ReactApexChart options={chartOptions} series={chartSeries} type="radialBar" height="130" />
+                    ) : (
+                        <div>Loading...</div> // 로딩 중일 때 표시
+                    )}
+                </div>
+                <div>
+                    greed
+                </div>
+                <div className='flex gap-1 mt-2'>
+                    <div className='w-1/4 bg-[#FF4560] h-2 mt-2 rounded-lg'></div>
+                    <div className='w-1/4 bg-[#FEB019] h-2 mt-2 rounded-lg'></div>
+                    <div className='w-1/4 bg-[#00E396] h-2 mt-2 rounded-lg'></div>
+                    <div className='w-1/4 bg-[#00E396] h-2 mt-2 rounded-lg'></div>
+                </div>
+
             </div>
             <div className='w-2/5 flex flex-col'>
-                {oneDayAgo !== null && <div className='bg-gray-100 mb-2 h-1/3 rounded-xl'>
-                    <ReactApexChart options={chartOptions2} series={[oneDayAgo]} type="radialBar" height="70" />
-                </div>}
-                {sevenDaysAgo && <div className='bg-gray-100 mb-2 h-1/3 rounded-xl'>
-                    <ReactApexChart options={chartOptions2} series={[sevenDaysAgo]} type="radialBar" height="70" />
+                {/* <div className='flex flex-row '>
+                    {oneDayAgo !== null && (<div className='bg-gray-100 mb-2 h-1/3 rounded-xl w-1/4 flex w-full'>
+                        <div className='w-1/4'>
+                            <ReactApexChart options={chartOptions2} series={[oneDayAgo]} type="radialBar" height="70" />
+                        </div>
+                        <div className='w-3/4 flex items-center justify-center'>
+                            Yesterday
+                        </div>
+                    </div>)}
+                </div> */}
+                {oneDayAgo && <div className='bg-gray-100 mb-2 h-1/3 rounded-xl'>
+                    <div className=' test flex flex-row items-center'>
+                        <div className='w-1/3'>
+                            <ReactApexChart options={chartOptions2} series={[oneDayAgo]} type="radialBar" height="60" />
+                        </div>
+                        <div className='w-2/3 p-3'>
+                            <div className='text-sm font-semibold'>어제</div>
+                            <div className='text-sm'>greed</div>
+
+                        </div>
+
+                    </div>
 
                 </div>}
-                {oneMonthAgo && <div className='bg-gray-100 h-1/3 rounded-xl'>
-                    <ReactApexChart options={chartOptions2} series={[oneMonthAgo]} type="radialBar" height="70" />
+
+                {sevenDaysAgo && <div className='bg-gray-100 mb-2 h-1/3 rounded-xl'>
+                    <div className=' test flex flex-row items-center'>
+                        <div className='w-1/3'>
+                            <ReactApexChart options={chartOptions2} series={[sevenDaysAgo]} type="radialBar" height="60" />
+                        </div>
+                        <div className='w-2/3 p-3'>
+                            <div className='text-sm font-semibold'>7일전</div>
+                            <div className='text-sm'>greed</div>
+
+                        </div>
+
+                    </div>
+
+                </div>}
+                {oneMonthAgo && <div className='bg-gray-100 mb-2 h-1/3 rounded-xl'>
+                    <div className=' test flex flex-row items-center'>
+                        <div className='w-1/3'>
+                            <ReactApexChart options={chartOptions2} series={[oneMonthAgo]} type="radialBar" height="60" />
+                        </div>
+                        <div className='w-2/3 p-3'>
+                            <div className='text-sm font-semibold'>한달전</div>
+                            <div className='text-sm'>greed</div>
+
+                        </div>
+
+                    </div>
+
                 </div>}
             </div>
         </div>
