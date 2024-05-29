@@ -26,11 +26,12 @@ const CoinList = () => {
     const [bitTicker, setBitTicker] = useState();
     const [prices, setPrices] = useState();
     const [symbols, setSymbols] = useState<Market[]>([]);   //모든티커
-    const [krwCoins, setKrwCoins] = useState<Market[]>([]);//KRW- 로시작하는 코인
-    const [usdtCoins, setUsdtCoins] = useState<Market[]>([]);//USDT- 로시작하는 코인
+    const [krwCoins, setKrwCoins] = useState<ticker[]>([]);//KRW- 로시작하는 코인
+    const [usdtCoins, setUsdtCoins] = useState<ticker[]>([]);//USDT- 로시작하는 코인
     const [allPrices, setAllPrices] = useState<string[] | undefined>();
     const [coins, setCoins] = useState<Market[]>([]);
     const [updatedCoins, setUpdatedCoins] = useState<ticker[]>([]);
+    const [selectedCurrency, setSelectedCurrency] = useState("KRW");
     /**
      * 1. 코인 마켓 분류
      * 2. 해당코인들의 24시간 누적 거래대금
@@ -41,8 +42,8 @@ const CoinList = () => {
             const newSymbols = result.data.map((item: any) => item.market);
             const krwMarket = result.data.filter((item: any) => item.market.startsWith('KRW-'))
             const usdtMarket = result.data.filter((item: any) => item.market.startsWith('USDT-'))
-            setKrwCoins(krwMarket);
-            setUsdtCoins(usdtMarket);
+            //setKrwCoins(krwMarket);
+            //setUsdtCoins(usdtMarket);
             setCoins(result.data);
             setSymbols(newSymbols);
 
@@ -75,6 +76,19 @@ const CoinList = () => {
         //어케해야할까..
 
     }, [symbols, coins])
+
+    //여기서 필터링?
+    useEffect(() => {
+        const krwCoin = updatedCoins.filter((item) => (
+            item.market.startsWith("KRW-")
+        ))
+        const usdtCoin = updatedCoins.filter((item) => (
+            item.market.startsWith("USDT-")
+        ))
+        setKrwCoins(krwCoin);
+        setUsdtCoins(usdtCoin);
+
+    }, [updatedCoins])
 
 
     useEffect(() => {
@@ -160,8 +174,10 @@ const CoinList = () => {
         <div className="container mx-auto mt-8">
             <div className="flex flex-row space-x-2 ">{/**왜 이렇게 밑에 넣어야함;;; */}
                 <div className=" flex flex-row bg-slate-100 rounded-full p-1 space-x-2">
-                    <div className="rounded-full p-2 bg-white text-sm">원화</div>
-                    <div className="rounded-full p-2 bg-white text-sm">USDT</div>
+                    <div className={`rounded-full p-2  text-sm ${selectedCurrency === "KRW" ? 'bg-blue-500 text-white' : "bg-white"}`}
+                        onClick={() => { setSelectedCurrency("KRW") }}>원화</div>
+                    <div className={`rounded-full p-2 bg-white text-sm ${selectedCurrency === "USDT" ? 'bg-blue-500 text-white' : 'bg-white'}`}
+                        onClick={() => { setSelectedCurrency("USDT") }}>USDT</div>
                 </div>
             </div>
             <table className="min-w-full bg-white">
@@ -179,7 +195,23 @@ const CoinList = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {updatedCoins.map((item, index) => (
+                    {selectedCurrency === "KRW" ? krwCoins.map((item, index) => (
+                        <tr key={index}>
+                            <td>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 w-3 h-3">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+                                </svg>
+                            </td>
+                            <td className="py-2 px-4 border-b">{index + 1}</td>
+                            <td>{item.korean_name}</td>
+                            <td>{item.trade_price.toLocaleString('ko-KR')}</td>
+                            <td>{(item.signed_change_rate * 100).toFixed(2)}%</td>
+                            <td>시가총액</td>
+                            <td> {item.acc_trade_price_24h.toLocaleString('ko-KR')}</td>
+                            <td>7일간 차트</td>
+
+                        </tr>
+                    )) : usdtCoins.map((item, index) => (
                         <tr key={index}>
                             <td>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 w-3 h-3">
