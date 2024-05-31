@@ -1,15 +1,5 @@
-import { useEffect, useState } from 'react'
-import axios from 'axios';
-import BitcoinChart from './components/BitcoinChart';
 import './App.css';
-import Bitcoin from './components/Bitcoin';
 import Navbar from './layouts/Navbar';
-import HalvingCountdown from './components/HalvingCountdown';
-import CoinList from './components/CoinList';
-import Grid1 from './layouts/Grid1';
-import Grid2 from './layouts/Grid2';
-import Grid3 from './layouts/Grid3';
-import { Router } from 'react-router-dom';
 import { Theme } from './pages/Theme';
 import { KimchiPremium } from './pages/KimchiPremium';
 import { Routes, Route } from 'react-router-dom'

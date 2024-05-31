@@ -1,9 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import axios from 'axios'
-import Chart from 'react-apexcharts';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
-import moment from 'moment';
 
 //https://alternative.me/crypto/fear-and-greed-index/
 
@@ -91,7 +89,6 @@ export const FearGreed = () => {
         colors: ['#00E396', '#FEB019', '#FF4560']
     };
     const chartSeries = fearGreedIdx !== null ? [fearGreedIdx] : [];
-    const chartSeries2 = [oneDayAgo, sevenDaysAgo, oneMonthAgo];
     const getFearGreedIdx = async () => {
         try {
             const response = await axios.get('https://api.alternative.me/fng/', {
@@ -121,7 +118,7 @@ export const FearGreed = () => {
             };
 
             // 데이터 필터링
-            const todayData = filterData(todayTimestamp);
+            //const todayData = filterData(todayTimestamp);
             const oneDayAgoData = filterData(oneDayAgoTimestamp);
             const sevenDaysAgoData = filterData(sevenDaysAgoTimestamp);
             const oneMonthAgoData = filterData(oneMonthAgoTimestamp);

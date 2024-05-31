@@ -1,4 +1,3 @@
-import React from "react";
 
 const RealtimeChart = () => {
     //그리드1이 아니라 여기서 flex-wrap해야하는건가/..?
@@ -6,7 +5,7 @@ const RealtimeChart = () => {
     return (<>
 
         <div className="md:grid grid-cols-3">{
-            [1, 2, 3, 4, 5].map((rc, index) => (
+            [1, 2, 3, 4, 5].map((index) => (
                 <div key={index} className="w-20 h-16 border-2 border-blue-400 m-3 p-2">
                     실시간차트
                 </div>

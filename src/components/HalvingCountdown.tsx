@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 const HalvingCountdown = () => {
     const [currentTime, setCurrentTime] = useState(new Date().getTime());
@@ -8,7 +8,6 @@ const HalvingCountdown = () => {
     const [hoursLeft, setHoursLeft] = useState(0)
     const [minutesLeft, setMinutesLeft] = useState(0)
     const [secondsLeft, setSecondsLeft] = useState(0)
-    const [openModal, setOpenModal] = useState(false);
 
     useEffect(() => {
         const interval = setInterval(() => {

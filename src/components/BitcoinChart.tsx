@@ -8,7 +8,6 @@ interface CandleData {
 }
 //으 머리아파.. 로그차트로 되나?
 const BitcoinChart = () => {//data를 app 에서 props로 넘겨주면될듯
-    const [candle, setCandle] = useState()
     const [tradePrice, setTradePrice] = useState<number[]>([])
 
     useEffect(() => {

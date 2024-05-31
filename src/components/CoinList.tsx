@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import axios, { all } from "axios";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import { v4 as uuidv4 } from 'uuid';
 
 
@@ -22,13 +22,9 @@ interface ticker {
 }
 
 const CoinList = () => {
-    const [markets, setMarkets] = useState<Market[]>([]);
-    const [bitTicker, setBitTicker] = useState();
-    const [prices, setPrices] = useState();
     const [symbols, setSymbols] = useState<Market[]>([]);   //모든티커
     const [krwCoins, setKrwCoins] = useState<ticker[]>([]);//KRW- 로시작하는 코인
     const [usdtCoins, setUsdtCoins] = useState<ticker[]>([]);//USDT- 로시작하는 코인
-    const [allPrices, setAllPrices] = useState<string[] | undefined>();
     const [coins, setCoins] = useState<Market[]>([]);
     const [updatedCoins, setUpdatedCoins] = useState<ticker[]>([]);
     const [selectedCurrency, setSelectedCurrency] = useState("KRW");
@@ -40,8 +36,8 @@ const CoinList = () => {
         try {
             const result = await axios.get("https://api.upbit.com/v1/market/all?isDetails=false");
             const newSymbols = result.data.map((item: any) => item.market);
-            const krwMarket = result.data.filter((item: any) => item.market.startsWith('KRW-'))
-            const usdtMarket = result.data.filter((item: any) => item.market.startsWith('USDT-'))
+            // const krwMarket = result.data.filter((item: any) => item.market.startsWith('KRW-'))
+            // const usdtMarket = result.data.filter((item: any) => item.market.startsWith('USDT-'))
             //setKrwCoins(krwMarket);
             //setUsdtCoins(usdtMarket);
             setCoins(result.data);
@@ -176,7 +172,7 @@ const CoinList = () => {
                 <div className=" flex flex-row bg-slate-100 rounded-full p-1 space-x-2">
                     <div className={`rounded-full p-2  text-sm ${selectedCurrency === "KRW" ? 'bg-blue-500 text-white' : "bg-white"}`}
                         onClick={() => { setSelectedCurrency("KRW") }}>원화</div>
-                    <div className={`rounded-full p-2 bg-white text-sm ${selectedCurrency === "USDT" ? 'bg-blue-500 text-white' : 'bg-white'}`}
+                    <div className={`rounded-full p-2 text-sm ${selectedCurrency === "USDT" ? 'bg-blue-500 text-white' : 'bg-white'}`}
                         onClick={() => { setSelectedCurrency("USDT") }}>USDT</div>
                 </div>
             </div>

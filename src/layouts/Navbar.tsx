@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 
 const Navbar = () => {
@@ -10,7 +9,7 @@ const Navbar = () => {
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
                             {/* 로고 또는 사이트 이름 */}
-                            <span className="font-bold">Logo</span>
+                            <Link to='/' className="font-bold">Logo</Link>
                         </div>
                         <div className="hidden md:block">
                             {/* 네비게이션 링크들 */}

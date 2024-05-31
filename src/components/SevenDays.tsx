@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import axios from 'axios'
 interface Candle {
   market: string;
@@ -27,6 +27,7 @@ export const SevenDays = () => {
           data: response.data
         }));
         setCandles(allCandles);
+        console.log(candles);
       } catch (error) {
         console.error("Error fetching candle data:", error);
       }

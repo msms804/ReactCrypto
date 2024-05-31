@@ -1,7 +1,5 @@
-import React from 'react'
 import CoinList from '../components/CoinList'
 import { FearGreed } from '../components/FearGreed'
-import HalvingCountdown from '../components/HalvingCountdown'
 import { BtcDominance } from '../components/BtcDominance'
 //일정비율 해야한다면 1:1:1비율로 하면될듯 col?
 export const Mainpage = () => {
@@ -10,7 +8,7 @@ export const Mainpage = () => {
             <div className="container mx-auto px-16 lg:px-32 ">
                 <div className="flex justify-between mt-10 space-x-4">
                     <div className="trending border border-slate-200 bg-white p-4 rounded-lg flex-1">
-                        <h2 className="text-lg font-semibold mb-4">Bitcoin / TetherUs<span className='text-xs font-thin ml-2'>BTCUSDT</span></h2>
+                        <h2 className="text-lg font-semibold mb-4">Bitcoin / TetherUS<span className='text-xs font-thin ml-2'>BTCUSDT</span></h2>
                         {/* Content for trending */}
                         <BtcDominance />
                     </div>

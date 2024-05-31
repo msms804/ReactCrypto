@@ -16,13 +16,12 @@ const Bitcoin = () => {
     const [btc, setBTC] = useState<number | null>(null);
     const [ticker, setTicker] = useState(null);
     const [rate, setRate] = useState<number | null>(null);
-    const [hover, setIsHover] = useState(false);
 
-    const modal = () => {
-        if (hover === true) {
-            setIsHover(false);
-        }
-    }
+    // const modal = () => {
+    //     if (hover === true) {
+    //         setIsHover(false);
+    //     }
+    // }
     useEffect(() => {
         const ws = new WebSocket("wss://api.upbit.com/websocket/v1");
 

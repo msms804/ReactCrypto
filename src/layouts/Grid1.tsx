@@ -1,5 +1,3 @@
-import React from "react";
-import BitcoinChart from "../components/BitcoinChart";
 import RealtimeChart from "../components/RealtimeChart";
 const Grid1 = () => {
 
