@@ -23,7 +23,6 @@ const Navbar = () => {
                     <div className="hidden md:block">
                         <div className="ml-4 flex items-center md:ml-6">
                             <div>다크모드</div>
-                            <button className="bg-white text-gray px-3 py-2 rounded-md text-sm font-medium">bitcoin</button>
                         </div>
                     </div>
                 </div>
