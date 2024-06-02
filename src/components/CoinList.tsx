@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { v4 as uuidv4 } from 'uuid';
+import { SevenDays } from "./SevenDays";
 
 
 interface Market {
@@ -32,27 +33,39 @@ const CoinList = () => {
      * 1. 코인 마켓 분류
      * 2. 해당코인들의 24시간 누적 거래대금
      */
-    const fetchMarketData = async () => {//마켓 분류 코드 (krw / usd)
-        try {
-            const result = await axios.get("https://api.upbit.com/v1/market/all?isDetails=false");
-            const newSymbols = result.data.map((item: any) => item.market);
-            // const krwMarket = result.data.filter((item: any) => item.market.startsWith('KRW-'))
-            // const usdtMarket = result.data.filter((item: any) => item.market.startsWith('USDT-'))
-            //setKrwCoins(krwMarket);
-            //setUsdtCoins(usdtMarket);
-            setCoins(result.data);
-            setSymbols(newSymbols);
-
-
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
     useEffect(() => {
+        const fetchMarketData = async () => {//마켓 분류 코드 (krw / usd)
+            try {
+                const result = await axios.get("https://api.upbit.com/v1/market/all?isDetails=false");
+                const newSymbols = result.data.map((item: any) => item.market);
+                // const krwMarket = result.data.filter((item: any) => item.market.startsWith('KRW-'))
+                // const usdtMarket = result.data.filter((item: any) => item.market.startsWith('USDT-'))
+                //setKrwCoins(krwMarket);
+                //setUsdtCoins(usdtMarket);
+                setCoins(result.data);
+                setSymbols(newSymbols);
+
+
+            } catch (error) {
+                console.log(error);
+            }
+        }
         fetchMarketData();
     }, [])
-
+    const saveInDB = async (e: any) => {
+        e.preventDefault();
+        try {
+            const response = await axios.post('http://localhost:8080/api/save/coin', {
+                name: '도지코인',
+                ticker: 'DOG-KRW',
+                cryptoExchange: 'upbit',
+                theme: '밈',
+            })
+            console.log("코인저장성공", response.data)
+        } catch (error) {
+            console.error("코인저장실패", error);
+        }
+    }
     useEffect(() => {
         const fetchCoinData = async () => {
             const tickerResult = await axios.get('https://api.upbit.com/v1/ticker', {
@@ -175,6 +188,7 @@ const CoinList = () => {
                     <div className={`rounded-full p-2 text-sm ${selectedCurrency === "USDT" ? 'bg-blue-500 text-white' : 'bg-white'}`}
                         onClick={() => { setSelectedCurrency("USDT") }}>USDT</div>
                 </div>
+                <div onClick={saveInDB}>코인 디비에저장</div>
             </div>
             <table className="min-w-full bg-white">
                 <thead>
@@ -204,7 +218,7 @@ const CoinList = () => {
                             <td>{(item.signed_change_rate * 100).toFixed(2)}%</td>
                             <td>시가총액</td>
                             <td> {item.acc_trade_price_24h.toLocaleString('ko-KR')}</td>
-                            <td>7일간 차트</td>
+                            <td><SevenDays ticker={item.market} /></td>
 
                         </tr>
                     )) : usdtCoins.map((item, index) => (
@@ -220,7 +234,7 @@ const CoinList = () => {
                             <td>{(item.signed_change_rate * 100).toFixed(2)}%</td>
                             <td>시가총액</td>
                             <td> {item.acc_trade_price_24h.toLocaleString('ko-KR')}</td>
-                            <td>7일간 차트</td>
+                            <td><SevenDays ticker={item.market} /></td>
 
                         </tr>
                     ))}
