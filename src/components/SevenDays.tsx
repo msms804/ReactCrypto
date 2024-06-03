@@ -1,6 +1,8 @@
 import { useEffect, useState, memo, useRef } from 'react'
 import axios from 'axios';
 import { createChart, ColorType } from 'lightweight-charts';
+import { ApexOptions } from 'apexcharts';
+import ReactApexChart from 'react-apexcharts';
 
 interface Candle {
   market: string;
@@ -26,18 +28,29 @@ interface SevenDaysProps {
  */
 export const SevenDays = memo(({ ticker }: SevenDaysProps) => {
   const [candles, setCandles] = useState<Candle[]>([]);
+  const [tradePrice, setTradePrice] = useState([]);
+  const chartContainerRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
+    console.log("props로 받은 ticker:", ticker);
+
+
     const fetchCandles = async () => {
       try {
         const sevenCandles = await axios.get('https://api.upbit.com/v1/candles/days', {
           params: {
-            market: "KRW-BTC",
+            market: ticker,
             to: new Date().toISOString().replace('.000Z', '+00:00'),  // KST 형식으로 변환
             count: 7,
             convertingPriceUnit: "KRW",
           }
         });
         console.log("7캔들", sevenCandles.data);
+        const newTradePrice = sevenCandles.data.map((item: any) => (
+          item.trade_price
+        ))
+        console.log("종가: ", newTradePrice)
+        setTradePrice(newTradePrice.reverse());
       } catch (error: any) {
         console.error("Error fetching candles:", error.response ? error.response.data : error.message);
       }
@@ -46,54 +59,94 @@ export const SevenDays = memo(({ ticker }: SevenDaysProps) => {
 
   }, [ticker])
 
-
-  const sevenDaysChart = (props: any) => {
+  //차트렌더링 
+  //참고 : https://tradingview.github.io/lightweight-charts/tutorials/react/simple 
+  // https://apexcharts.com/docs/react-charts/
+  const chartOptions: ApexOptions = {
+    chart: {
+      type: 'line',
+      offsetY: 0,
+      sparkline: {
+        enabled: true
+      },
+      toolbar: {
+        show: false,
+      },
+      zoom: {
+        enabled: false,
+      },
+    },
+    xaxis: {
+      labels: {
+        show: false,
+      },
+      axisBorder: {
+        show: false,
+      },
+      axisTicks: {
+        show: false,
+      },
+    },
+    yaxis: {
+      labels: {
+        show: false,
+      },
+      axisBorder: {
+        show: false,
+      },
+      axisTicks: {
+        show: false,
+      },
+    },
+    grid: {
+      show: false,
+    },
+    stroke: {
+      curve: 'smooth',
+      width: 2, // 라인의 굵기를 1로 설정합니다.
+    },
 
   }
-  const initialData = [
-    { time: '2018-12-22', value: 32.51 },
-    { time: '2018-12-23', value: 31.11 },
-    { time: '2018-12-24', value: 27.02 },
-    { time: '2018-12-25', value: 27.32 },
-    { time: '2018-12-26', value: 25.17 },
-    { time: '2018-12-27', value: 28.89 },
-    { time: '2018-12-28', value: 25.46 },
-    { time: '2018-12-29', value: 23.92 },
-    { time: '2018-12-30', value: 22.68 },
-    { time: '2018-12-31', value: 22.67 },
-  ];
 
-  /** 
-  useEffect(() => {
-      const fetchCandles = async () => {
-        const markets = ['KRW-BTC', 'KRW-SOL', 'KRW-ETH', 'KRW-DOGE'];
-        const to = new Date().toISOString();
-        const count = 7;
-        const promises = markets.map(market =>
-          axios.get('https://api.upbit.com/v1/candles/days', { params: { market, to, count } })
-        );
-        try {
-          const responses = await Promise.all(promises);
-          const allCandles = responses.map((response, index) => ({
-            market: markets[index],
-            data: response.data
-          }));
-          setCandles(allCandles);
-          console.log(candles);
-        } catch (error) {
-          console.error("Error fetching candle data:", error);
-        }
-  
-      }
-      fetchCandles();
-    }, [])
-  
-  */
+
+
   return (
-    <div>왜이래;;</div>
+    <div >
+      <ReactApexChart options={chartOptions} series={[
+        {
+          name: "series-1",
+          data: tradePrice,
+        }
+      ]} type='line' height="70" width="200" />
+    </div>
   )
 })
 
 
 
-// Memoize the component and specify the props type explicitly
+/**
+useEffect(() => {
+    const fetchCandles = async () => {
+      const markets = ['KRW-BTC', 'KRW-SOL', 'KRW-ETH', 'KRW-DOGE'];
+      const to = new Date().toISOString();
+      const count = 7;
+      const promises = markets.map(market =>
+        axios.get('https://api.upbit.com/v1/candles/days', { params: { market, to, count } })
+      );
+      try {
+        const responses = await Promise.all(promises);
+        const allCandles = responses.map((response, index) => ({
+          market: markets[index],
+          data: response.data
+        }));
+        setCandles(allCandles);
+        console.log(candles);
+      } catch (error) {
+        console.error("Error fetching candle data:", error);
+      }
+ 
+    }
+    fetchCandles();
+  }, [])
+ 
+*/
