@@ -54,17 +54,38 @@ const CoinList = () => {
     }, [])
     const saveInDB = async (e: any) => {
         e.preventDefault();
+        const imsi = krwCoins.map((item) => ({
+            ticker: item.market,
+            shortname: item.market.split('-')[1],
+            cryptoExchange: "upbit",
+            englishname: item.english_name,
+            koreanname: item.korean_name,
+            theme: "",
+        }))
+        console.log("imsi", imsi);
         try {
-            const response = await axios.post('http://localhost:8080/api/save/coin', {
-                name: '도지코인',
-                ticker: 'DOG-KRW',
-                cryptoExchange: 'upbit',
-                theme: '밈',
-            })
+            const response = await axios.post('http://localhost:8080/api/save/coin', imsi)
             console.log("코인저장성공", response.data)
         } catch (error) {
             console.error("코인저장실패", error);
         }
+        // const promises = krwCoins.map((item) => {
+        //     console.log("머임썅", item.market, item.english_name, item.korean_name)
+        //     axios.post('http://localhost:8080/api/save/coin', {
+        //         ticker: item.market,
+        //         shortname: item.market.split('-')[1],
+        //         cryptoExchange: "upbit",
+        //         englishname: item.english_name,
+        //         koreanname: item.korean_name,
+        //         theme: " ",
+        //     })
+        // })
+        // try {
+        //     const responses = await Promise.all(promises);
+        //     console.log("프로미스테스트", responses);
+        // } catch (error) {
+        //     console.log("코인저장실패", error);
+        // }
     }
     useEffect(() => {
         const fetchCoinData = async () => {
@@ -94,6 +115,15 @@ const CoinList = () => {
         const usdtCoin = updatedCoins.filter((item) => (
             item.market.startsWith("USDT-")
         ))
+        krwCoin.sort((a, b) => {
+            if (a.acc_trade_price_24h < b.acc_trade_price_24h) {
+                return 1;
+            }
+            if (a.acc_trade_price_24h > b.acc_trade_price_24h) {
+                return -1;
+            }
+            return 0;
+        })
         setKrwCoins(krwCoin);
         setUsdtCoins(usdtCoin);
 
@@ -188,7 +218,7 @@ const CoinList = () => {
                     <div className={`rounded-full p-2 text-sm ${selectedCurrency === "USDT" ? 'bg-blue-500 text-white' : 'bg-white'}`}
                         onClick={() => { setSelectedCurrency("USDT") }}>USDT</div>
                 </div>
-                <div onClick={saveInDB}>코인 디비에저장</div>
+                {/* <div onClick={saveInDB}>코인 디비에저장</div> */}
             </div>
             <table className="min-w-full bg-white">
                 <thead>
@@ -199,13 +229,12 @@ const CoinList = () => {
                         <th className="py-2 bg-gray-100 border-b text-left">가격</th>
                         <th className="py-2 bg-gray-100 border-b text-left">등락폭(24h)</th>
 
-                        <th className="py-2 bg-gray-100 border-b text-left">시가총액</th>
                         <th className="py-2 bg-gray-100 border-b text-left">거래대금(24h)</th>
-                        <th className="py-2 bg-gray-100 border-b text-left">7D</th>
+                        <th className="py-2 bg-gray-100 border-b text-left">30D</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {selectedCurrency === "KRW" ? krwCoins.map((item, index) => (
+                    {selectedCurrency === "KRW" ? krwCoins.slice(0, 10).map((item, index) => (
                         <tr key={index}>
                             <td>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 w-3 h-3">
@@ -213,12 +242,11 @@ const CoinList = () => {
                                 </svg>
                             </td>
                             <td className="py-2 px-4 border-b">{index + 1}</td>
-                            <td>{item.korean_name}</td>
-                            <td>{item.trade_price.toLocaleString('ko-KR')}</td>
-                            <td>{(item.signed_change_rate * 100).toFixed(2)}%</td>
-                            <td>시가총액</td>
+                            <td><span className="font-medium">{item.market.split('-')[1]}</span><span className="text-xs text-gray-500 ml-2">{item.korean_name}</span></td>
+                            <td className={`${item.change === "RISE" ? "text-red-500" : "text-blue-600"} font-medium`}>{item.trade_price.toLocaleString('ko-KR')}</td>
+                            <td className={`${item.change === "RISE" ? "text-red-500" : "text-blue-600"} font-medium`}>{(item.signed_change_rate * 100).toFixed(2)}%</td>
                             <td> {item.acc_trade_price_24h.toLocaleString('ko-KR')}</td>
-                            <td><SevenDays ticker={item.market} /></td>
+                            <td><SevenDays ticker={item.market} change={item.change} /></td>
 
                         </tr>
                     )) : usdtCoins.map((item, index) => (
@@ -232,9 +260,8 @@ const CoinList = () => {
                             <td>{item.korean_name}</td>
                             <td>{item.trade_price.toLocaleString('ko-KR')}</td>
                             <td>{(item.signed_change_rate * 100).toFixed(2)}%</td>
-                            <td>시가총액</td>
                             <td> {item.acc_trade_price_24h.toLocaleString('ko-KR')}</td>
-                            <td><SevenDays ticker={item.market} /></td>
+                            <td><SevenDays ticker={item.market} change={item.change} /></td>
 
                         </tr>
                     ))}
