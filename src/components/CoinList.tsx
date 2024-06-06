@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { v4 as uuidv4 } from 'uuid';
 import { SevenDays } from "./SevenDays";
-
+import useUpbitCoins from "../queries/upbitcoins";
 
 interface Market {
     market: string;
@@ -20,6 +20,7 @@ interface ticker {
     signed_change_rate: number;
     acc_trade_price_24h: number;
     trade_price: number;
+    image: string,
 }
 
 const CoinList = () => {
@@ -29,10 +30,9 @@ const CoinList = () => {
     const [coins, setCoins] = useState<Market[]>([]);
     const [updatedCoins, setUpdatedCoins] = useState<ticker[]>([]);
     const [selectedCurrency, setSelectedCurrency] = useState("KRW");
-    /**
-     * 1. 코인 마켓 분류
-     * 2. 해당코인들의 24시간 누적 거래대금
-     */
+    const { data: upbitcoins, error: upbitError, isLoading: upbitLoading } = useUpbitCoins();
+
+
     useEffect(() => {
         const fetchMarketData = async () => {//마켓 분류 코드 (krw / usd)
             try {
@@ -52,9 +52,21 @@ const CoinList = () => {
         }
         fetchMarketData();
     }, [])
+    useEffect(() => {
+        /**
+            1. 쿼리로 가져온 데이터
+            2. 먼저 이미지 매핑, hint: find함수
+            3. 실시간 가격 매핑
+        */
+        if (upbitcoins) {
+            console.log(upbitcoins[0])
+        }
+
+    }, [upbitcoins])
+
     const saveInDB = async (e: any) => {
         e.preventDefault();
-        const imsi = krwCoins.map((item) => ({
+        const imsi = usdtCoins.map((item) => ({
             ticker: item.market,
             shortname: item.market.split('-')[1],
             cryptoExchange: "upbit",
@@ -70,7 +82,7 @@ const CoinList = () => {
             console.error("코인저장실패", error);
         }
         // const promises = krwCoins.map((item) => {
-        //     console.log("머임썅", item.market, item.english_name, item.korean_name)
+        //     console.log(item.market, item.english_name, item.korean_name)
         //     axios.post('http://localhost:8080/api/save/coin', {
         //         ticker: item.market,
         //         shortname: item.market.split('-')[1],
@@ -107,7 +119,7 @@ const CoinList = () => {
 
     }, [symbols, coins])
 
-    //여기서 필터링?
+    //여기서 필터링, 정렬?
     useEffect(() => {
         const krwCoin = updatedCoins.filter((item) => (
             item.market.startsWith("KRW-")
@@ -136,7 +148,39 @@ const CoinList = () => {
         console.log("모든티커", symbols)
     }, [krwCoins, usdtCoins, symbols])
 
+    //코인게코에서 이미지 페칭
+    // useEffect(() => {
+    //     //이미지 가져와서 같은 shortname인것과 비교
+    //     const fetchCoinImgs = async () => {
+    //         try {
+    //             const response = await axios.get('https://api.coingecko.com/api/v3/coins/markets', {
+    //                 params: {
+    //                     vs_currency: 'krw',
+    //                     order: 'market_cap_desc',
+    //                     sparkline: false,
+    //                 }
+    //             });
+    //             console.log("코인게코: ", response.data);
 
+    //             const updatedKrwCoins = krwCoins.map(coin => {
+    //                 const coinSymbol = coin.market.split('-')[1].toLowerCase(); // krwCoins의 symbol
+    //                 const match = response.data.find((geckoCoin: any) => geckoCoin.symbol === coinSymbol);
+    //                 if (match) {
+    //                     return { ...coin, image: match.image };
+    //                 }
+    //                 return coin;
+    //             });
+
+    //             setKrwCoins(updatedKrwCoins);
+    //         } catch (error) {
+    //             console.error(error);
+    //         }
+    //     };
+
+    //     if (krwCoins.length > 0) {
+    //         fetchCoinImgs();
+    //     }
+    // }, [krwCoins]);
     useEffect(() => {
         const ws = new WebSocket("wss://api.upbit.com/websocket/v1");
 
@@ -209,6 +253,7 @@ const CoinList = () => {
      * 2. 10개씩 불러온다?
      * 3. 밑에 1 2 3 4 ... 이렇게 표시해야
      */
+    if (upbitLoading) return <div>upbit loading...</div>
     return (<>
         <div className="container mx-auto mt-8">
             <div className="flex flex-row space-x-2 ">{/**왜 이렇게 밑에 넣어야함;;; */}
@@ -218,6 +263,9 @@ const CoinList = () => {
                     <div className={`rounded-full p-2 text-sm ${selectedCurrency === "USDT" ? 'bg-blue-500 text-white' : 'bg-white'}`}
                         onClick={() => { setSelectedCurrency("USDT") }}>USDT</div>
                 </div>
+                <label className="">
+                    <input type="search" placeholder="코인검색" className="border rounded-full p-1" />
+                </label>
                 {/* <div onClick={saveInDB}>코인 디비에저장</div> */}
             </div>
             <table className="min-w-full bg-white">
@@ -242,7 +290,11 @@ const CoinList = () => {
                                 </svg>
                             </td>
                             <td className="py-2 px-4 border-b">{index + 1}</td>
-                            <td><span className="font-medium">{item.market.split('-')[1]}</span><span className="text-xs text-gray-500 ml-2">{item.korean_name}</span></td>
+                            <td className="flex flex-row items-center">
+                                <span><img src="" className="w-8 h-8" /></span>
+                                <span className="font-medium">{item.market.split('-')[1]}</span>
+                                <span className="text-xs text-gray-500 ml-2">{item.korean_name}</span>
+                            </td>
                             <td className={`${item.change === "RISE" ? "text-red-500" : "text-blue-600"} font-medium`}>{item.trade_price.toLocaleString('ko-KR')}</td>
                             <td className={`${item.change === "RISE" ? "text-red-500" : "text-blue-600"} font-medium`}>{(item.signed_change_rate * 100).toFixed(2)}%</td>
                             <td> {item.acc_trade_price_24h.toLocaleString('ko-KR')}</td>
@@ -257,7 +309,7 @@ const CoinList = () => {
                                 </svg>
                             </td>
                             <td className="py-2 px-4 border-b">{index + 1}</td>
-                            <td>{item.korean_name}</td>
+                            <td><span></span>{item.korean_name}</td>
                             <td>{item.trade_price.toLocaleString('ko-KR')}</td>
                             <td>{(item.signed_change_rate * 100).toFixed(2)}%</td>
                             <td> {item.acc_trade_price_24h.toLocaleString('ko-KR')}</td>
