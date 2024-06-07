@@ -32,8 +32,8 @@ export const FearGreed = () => {
                         show: false
                     },
                     value: {
-                        offsetY: 10,
-                        fontSize: '18px',
+                        offsetY: 9,
+                        fontSize: '16px',
                         formatter: function (val) {
                             return Math.round(val).toString();
                         }
@@ -142,21 +142,24 @@ export const FearGreed = () => {
     return (<>
         <div className='flex flex-row space-x-2'>
             <div className='bg-gray-100 w-3/5 rounded-xl'>
-                <div className='place-items-start'>
-                    {fearGreedIdx !== null ? (
-                        <ReactApexChart options={chartOptions} series={chartSeries} type="radialBar" height="130" />
-                    ) : (
-                        <div>Loading...</div> // 로딩 중일 때 표시
-                    )}
+                <div className='flex flex-row'>
+                    <div className='place-items-start'>
+                        {fearGreedIdx !== null ? (
+                            <ReactApexChart options={chartOptions} series={chartSeries} type="radialBar" height="130" />
+                        ) : (
+                            <div>Loading...</div> // 로딩 중일 때 표시
+                        )}
+                    </div>
+                    <div>
+                        greed
+                    </div>
                 </div>
-                <div>
-                    greed
-                </div>
-                <div className='flex gap-1 mt-2'>
-                    <div className='w-1/4 bg-[#FF4560] h-2 mt-2 rounded-lg'></div>
-                    <div className='w-1/4 bg-[#FEB019] h-2 mt-2 rounded-lg'></div>
-                    <div className='w-1/4 bg-[#00E396] h-2 mt-2 rounded-lg'></div>
-                    <div className='w-1/4 bg-[#00E396] h-2 mt-2 rounded-lg'></div>
+
+                <div className='flex gap-1 mt-2 pl-4 pr-4'>
+                    <div className='w-1/4 bg-[#FF4560] h-1 mt-2 rounded-lg'></div>
+                    <div className='w-1/4 bg-[#FEB019] h-1 mt-2 rounded-lg'></div>
+                    <div className='w-1/4 bg-[#00E396] h-1 mt-2 rounded-lg'></div>
+                    <div className='w-1/4 bg-[#00E396] h-1 mt-2 rounded-lg'></div>
                 </div>
 
             </div>
@@ -177,7 +180,7 @@ export const FearGreed = () => {
                             <ReactApexChart options={chartOptions2} series={[oneDayAgo]} type="radialBar" height="60" />
                         </div>
                         <div className='w-2/3 p-3'>
-                            <div className='text-sm font-semibold'>어제</div>
+                            <div className='text-xs font-bold'>어제</div>
                             <div className='text-sm'>greed</div>
 
                         </div>
@@ -192,7 +195,7 @@ export const FearGreed = () => {
                             <ReactApexChart options={chartOptions2} series={[sevenDaysAgo]} type="radialBar" height="60" />
                         </div>
                         <div className='w-2/3 p-3'>
-                            <div className='text-sm font-semibold'>7일전</div>
+                            <div className='text-xs font-bold'>7일전</div>
                             <div className='text-sm'>greed</div>
 
                         </div>
@@ -206,7 +209,7 @@ export const FearGreed = () => {
                             <ReactApexChart options={chartOptions2} series={[oneMonthAgo]} type="radialBar" height="60" />
                         </div>
                         <div className='w-2/3 p-3'>
-                            <div className='text-sm font-semibold'>한달전</div>
+                            <div className='text-xs font-bold'>한달전</div>
                             <div className='text-sm'>greed</div>
 
                         </div>
