@@ -3,6 +3,7 @@ import axios from "axios";
 import { v4 as uuidv4 } from 'uuid';
 import { SevenDays } from "./SevenDays";
 import useUpbitCoins from "../queries/upbitcoins";
+import { Search } from "./Search";
 
 interface Market {
     market: string;
@@ -22,7 +23,19 @@ interface ticker {
     trade_price: number;
     image: string,
 }
-
+interface upbit {
+    koreanname: string,
+    englishname: string,
+    theme: string,
+    ticker: string,
+    shortname: string,
+    image: string,
+    cryptoExchange: string,
+    trade_price: number,//가격
+    acc_trade_price_24h: number,//거래대금
+    signed_change_rate: number, //등락폭
+    change: string,
+}
 const CoinList = () => {
     const [symbols, setSymbols] = useState<Market[]>([]);   //모든티커
     const [krwCoins, setKrwCoins] = useState<ticker[]>([]);//KRW- 로시작하는 코인
@@ -31,7 +44,9 @@ const CoinList = () => {
     const [updatedCoins, setUpdatedCoins] = useState<ticker[]>([]);
     const [selectedCurrency, setSelectedCurrency] = useState("KRW");
     const { data: upbitcoins, error: upbitError, isLoading: upbitLoading } = useUpbitCoins();
-
+    const [updatedUpbitCoins, setUpdatedUpbitCoins] = useState<upbit[]>([]);
+    const [usdtUpbitCoins, setUsdtUpbitCoins] = useState<upbit[]>([])//updatedUpbitCoins중 usdt만 필터링한것
+    const [krwUpbitCoins, setKrwUpbitCoins] = useState<upbit[]>([])//updatedUpbitCoins중 krw만 필터링한것
 
     useEffect(() => {
         const fetchMarketData = async () => {//마켓 분류 코드 (krw / usd)
@@ -52,27 +67,48 @@ const CoinList = () => {
         }
         fetchMarketData();
     }, [])
-    useEffect(() => {
-        /**
-            1. 쿼리로 가져온 데이터
-            2. 먼저 이미지 매핑, hint: find함수
-            3. 실시간 가격 매핑
-        */
-        if (upbitcoins) {
-            console.log(upbitcoins[0])
-        }
 
+    useEffect(() => {
+        const fetchGeckoImgs = async () => {
+            if (upbitcoins) {
+                try {
+                    // const response = await axios.get('https://api.coingecko.com/api/v3/coins/markets', {//왜 100개밖에
+                    //     params: {
+                    //         vs_currency: 'usd',
+                    //         order: 'market_cap_desc',
+                    //         sparkline: false,
+                    //     }
+                    // });
+                    // console.log("코인게코에서 가져온데이터:", response.data);
+                    // const newUpbitCoins = upbitcoins.map((upbitdata: any) => {
+                    //     const match = response.data.find((geckocoin: any) => (geckocoin.symbol === upbitdata.shortname.toLowerCase()))
+                    //     if (match) {
+                    //         return { ...upbitdata, image: match.image }
+                    //     }
+                    //     return upbitdata
+                    // })
+                    // console.log("코인게코 업비트에 매핑", newUpbitCoins)
+                    // setUpdatedUpbitCoins(newUpbitCoins);
+                    setUpdatedUpbitCoins(upbitcoins)
+                } catch (error) {
+                    console.error(error);
+                }
+
+            }
+        }
+        fetchGeckoImgs();
     }, [upbitcoins])
 
     const saveInDB = async (e: any) => {
         e.preventDefault();
-        const imsi = usdtCoins.map((item) => ({
-            ticker: item.market,
-            shortname: item.market.split('-')[1],
-            cryptoExchange: "upbit",
-            englishname: item.english_name,
-            koreanname: item.korean_name,
+        const imsi = updatedUpbitCoins.map((item) => ({
+            ticker: item.ticker,
+            shortname: item.shortname,
+            cryptoExchange: item.cryptoExchange,
+            englishname: item.englishname,
+            koreanname: item.koreanname,
             theme: "",
+            image: item.image || "",
         }))
         console.log("imsi", imsi);
         try {
@@ -104,7 +140,7 @@ const CoinList = () => {
             const tickerResult = await axios.get('https://api.upbit.com/v1/ticker', {
                 params: { markets: symbols.join(',') }
             })
-            console.log("대굴빡", tickerResult.data);
+            console.log(tickerResult.data);
             const updatedCoins = coins.map((coin, index) => ({
                 ...coin,
                 ...tickerResult.data[index]
@@ -114,8 +150,6 @@ const CoinList = () => {
 
         }
         fetchCoinData();
-        //ㅇㅎ.. 지금갖고온데이터랑 위의 데이터 합쳐야..
-        //어케해야할까..
 
     }, [symbols, coins])
 
@@ -127,6 +161,13 @@ const CoinList = () => {
         const usdtCoin = updatedCoins.filter((item) => (
             item.market.startsWith("USDT-")
         ))
+        const krwUpbit = updatedUpbitCoins.filter((item) => (
+            item.ticker.startsWith("KRW-")
+        ))
+        const usdtUpbit = updatedUpbitCoins.filter((item) => (
+            item.ticker.startsWith("USDT-")
+        ))
+
         krwCoin.sort((a, b) => {
             if (a.acc_trade_price_24h < b.acc_trade_price_24h) {
                 return 1;
@@ -136,10 +177,31 @@ const CoinList = () => {
             }
             return 0;
         })
+        krwUpbit.sort((a, b) => {
+            if (a.acc_trade_price_24h < b.acc_trade_price_24h) {
+                return 1;
+            }
+            if (a.acc_trade_price_24h > b.acc_trade_price_24h) {
+                return -1;
+            }
+            return 0;
+        })
+        usdtUpbit.sort((a, b) => {
+            if (a.acc_trade_price_24h < b.acc_trade_price_24h) {
+                return 1;
+            }
+            if (a.acc_trade_price_24h > b.acc_trade_price_24h) {
+                return -1;
+            }
+            return 0;
+        })
+
         setKrwCoins(krwCoin);
         setUsdtCoins(usdtCoin);
+        setKrwUpbitCoins(krwUpbit);
+        setUsdtUpbitCoins(usdtUpbit);
 
-    }, [updatedCoins])
+    }, [updatedCoins, updatedUpbitCoins])
 
 
     useEffect(() => {
@@ -148,39 +210,6 @@ const CoinList = () => {
         console.log("모든티커", symbols)
     }, [krwCoins, usdtCoins, symbols])
 
-    //코인게코에서 이미지 페칭
-    // useEffect(() => {
-    //     //이미지 가져와서 같은 shortname인것과 비교
-    //     const fetchCoinImgs = async () => {
-    //         try {
-    //             const response = await axios.get('https://api.coingecko.com/api/v3/coins/markets', {
-    //                 params: {
-    //                     vs_currency: 'krw',
-    //                     order: 'market_cap_desc',
-    //                     sparkline: false,
-    //                 }
-    //             });
-    //             console.log("코인게코: ", response.data);
-
-    //             const updatedKrwCoins = krwCoins.map(coin => {
-    //                 const coinSymbol = coin.market.split('-')[1].toLowerCase(); // krwCoins의 symbol
-    //                 const match = response.data.find((geckoCoin: any) => geckoCoin.symbol === coinSymbol);
-    //                 if (match) {
-    //                     return { ...coin, image: match.image };
-    //                 }
-    //                 return coin;
-    //             });
-
-    //             setKrwCoins(updatedKrwCoins);
-    //         } catch (error) {
-    //             console.error(error);
-    //         }
-    //     };
-
-    //     if (krwCoins.length > 0) {
-    //         fetchCoinImgs();
-    //     }
-    // }, [krwCoins]);
     useEffect(() => {
         const ws = new WebSocket("wss://api.upbit.com/websocket/v1");
 
@@ -212,7 +241,14 @@ const CoinList = () => {
                 //setPrices(prevPrices => [...prevPrices, receivedData.trade_price]);
                 //setPrices(receivedData.trade_price);
                 //여기다 tickers에 티커네임만 매핑해야
-
+                setUpdatedUpbitCoins(prev => prev.map(coin => (coin.ticker === receivedData.code)
+                    ? {
+                        ...coin,
+                        trade_price: receivedData.trade_price,//가격
+                        acc_trade_price_24h: receivedData.acc_trade_price_24h,//거래대금
+                        signed_change_rate: receivedData.signed_change_rate, //등락폭
+                        change: receivedData.change,    //상승, 보합, 하락
+                    } : coin))
 
             });
         }
@@ -263,28 +299,46 @@ const CoinList = () => {
                     <div className={`rounded-full p-2 text-sm ${selectedCurrency === "USDT" ? 'bg-blue-500 text-white' : 'bg-white'}`}
                         onClick={() => { setSelectedCurrency("USDT") }}>USDT</div>
                 </div>
-                <label className="">
-                    <input type="search" placeholder="코인검색" className="border rounded-full p-1" />
-                </label>
-                {/* <div onClick={saveInDB}>코인 디비에저장</div> */}
+                <Search />
+                {/* <button onClick={saveInDB}>코인 디비에저장</button> */}
             </div>
             <table className="min-w-full bg-white">
-                <thead>
+                <thead >
                     <tr>
-                        <th className="py-2 bg-gray-100 border-b text-left"></th>
+                        <th className="py-2 bg-gray-100 border-b text-left rounded-tl-lg"></th>
                         <th className="py-2 bg-gray-100 border-b text-left">#</th>
                         <th className="py-2 bg-gray-100 border-b text-left">코인명</th>
                         <th className="py-2 bg-gray-100 border-b text-left">가격</th>
                         <th className="py-2 bg-gray-100 border-b text-left">등락폭(24h)</th>
 
                         <th className="py-2 bg-gray-100 border-b text-left">거래대금(24h)</th>
-                        <th className="py-2 bg-gray-100 border-b text-left">30D</th>
+                        <th className="py-2 bg-gray-100 border-b text-left rounded-tr-lg">30D</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {selectedCurrency === "KRW" ? krwCoins.slice(0, 10).map((item, index) => (
-                        <tr key={index}>
-                            <td>
+                    {selectedCurrency === "KRW" ?
+                        krwUpbitCoins.slice(0, 10).map((item, index) => (
+                            <tr key={index}>
+                                <td>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 w-3 h-3">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+                                    </svg>
+                                </td>
+                                <td className="py-2 px-4 border-b text-sm text-left">{index + 1}</td>
+                                <td className="flex flex-row items-center">
+                                    <span><img src={item.image} className="w-7 h-7 rounded-full" /></span>
+                                    <span className="font-medium">{item.shortname}</span>
+                                    <span className="text-xs text-gray-500 ml-2">{item.koreanname}</span>
+                                </td>
+                                <td className={`${item.change === "RISE" ? "text-red-500" : "text-blue-600"} font-medium text-sm`}>{item.trade_price?.toLocaleString('ko-KR')}</td>
+                                <td className={`${item.change === "RISE" ? "text-red-500" : "text-blue-600"} font-medium text-sm`}>{(item.signed_change_rate * 100).toFixed(2)}%</td>
+                                <td className="text-sm"> {item.acc_trade_price_24h?.toLocaleString('ko-KR')}</td>
+                                <td><SevenDays ticker={item.ticker} change={item.change} /></td>
+
+
+                            </tr>
+                        )) :/**
+                                                <td>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 w-3 h-3">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
                                 </svg>
@@ -300,23 +354,48 @@ const CoinList = () => {
                             <td> {item.acc_trade_price_24h.toLocaleString('ko-KR')}</td>
                             <td><SevenDays ticker={item.market} change={item.change} /></td>
 
-                        </tr>
-                    )) : usdtCoins.map((item, index) => (
-                        <tr key={index}>
-                            <td>
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 w-3 h-3">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-                                </svg>
-                            </td>
-                            <td className="py-2 px-4 border-b">{index + 1}</td>
-                            <td><span></span>{item.korean_name}</td>
-                            <td>{item.trade_price.toLocaleString('ko-KR')}</td>
-                            <td>{(item.signed_change_rate * 100).toFixed(2)}%</td>
-                            <td> {item.acc_trade_price_24h.toLocaleString('ko-KR')}</td>
-                            <td><SevenDays ticker={item.market} change={item.change} /></td>
+                     */
+                        // usdtCoins.map((item, index) => (
+                        //     <tr key={index}>
+                        //         <td>
+                        //             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 w-3 h-3">
+                        //                 <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+                        //             </svg>
+                        //         </td>
+                        //         <td className="py-2 px-4 border-b">{index + 1}</td>
+                        //         <td className="flex flex-row items-center">
+                        //             <span><img src="" className="w-8 h-8" /></span>
+                        //             <span className="font-medium">{item.market.split('-')[1]}</span>
+                        //             <span className="text-xs text-gray-500 ml-2">{item.korean_name}</span>
+                        //         </td>
+                        //         <td>{item.trade_price.toLocaleString('ko-KR')}</td>
+                        //         <td>{(item.signed_change_rate * 100).toFixed(2)}%</td>
+                        //         <td> {item.acc_trade_price_24h.toLocaleString('ko-KR')}</td>
+                        //         <td><SevenDays ticker={item.market} change={item.change} /></td>
 
-                        </tr>
-                    ))}
+                        //     </tr>
+                        // ))
+                        usdtUpbitCoins.slice(0, 10).map((item, index) => (
+                            <tr key={index}>
+                                <td>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 w-3 h-3">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+                                    </svg>
+                                </td>
+                                <td className="py-2 px-4 border-b">{index + 1}</td>
+                                <td className="flex flex-row items-center">
+                                    <span><img src={item.image} className="w-7 h-7 rounded-full" /></span>
+                                    <span className="font-medium">{item.shortname}</span>
+                                    <span className="text-xs text-gray-500 ml-2">{item.koreanname}</span>
+                                </td>
+                                <td className={`${item.change === "RISE" ? "text-red-500" : "text-blue-600"} font-medium`}> {item.trade_price.toLocaleString('ko-KR')}</td>
+                                <td className={`${item.change === "RISE" ? "text-red-500" : "text-blue-600"} font-medium`}>{(item.signed_change_rate * 100).toFixed(2)}%</td>
+                                <td > {item.acc_trade_price_24h.toLocaleString('ko-KR')}</td>
+                                <td><SevenDays ticker={item.ticker} change={item.change} /></td>
+
+                            </tr>
+                        ))
+                    }
 
                 </tbody>
             </table>
