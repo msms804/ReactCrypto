@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react"
 import { v4 as uuidv4 } from 'uuid';
 import useUpbitCoins from "../queries/upbitcoins";
+import { useSelector } from "react-redux";
+import { RootState } from "../store/store";
+import useUpbitWebsocket from "../hooks/useUpbitWebsocket";
+import axios from "axios";
 
 interface upbit {
     koreanname: string,
@@ -24,6 +28,20 @@ interface upbitBinance {
     image: string,
     cryptoExchange: string,
     trade_price: string,
+}
+interface kimchi {
+    koreanname: string,
+    englishname: string,
+    theme: string,
+    ticker: string,
+    shortname: string,
+    image: string,
+    cryptoExchange: string,
+    trade_price: number,//가격
+    acc_trade_price_24h: number,//거래대금
+    signed_change_rate: number, //등락폭
+    change: string,
+    binance_trade_price: number,
 }
 //https://binance-docs.github.io/apidocs/websocket_api/en/#general-api-information
 /**
@@ -58,10 +76,58 @@ export const KimchiPremium = () => {
     const { data: upbitcoins, error: upbitError, isLoading: upbitLoading } = useUpbitCoins();
     const [upbitshortname, setUpbitShortName] = useState([]);//바이낸스에 보낼 티커 배열
     const [upbitBinance, setUpbitBinance] = useState<upbitBinance[]>([])
-
+    //업비트 바이낸스 가격차 퍼센트 다 떼려넣을 변수, 이거 렌더링할거임
+    const [kimchi, setKimchi] = useState<kimchi[]>([]);
+    const reduxItems = useSelector((state: RootState) => state.upbit.coins)
+    const [exchangeRate, setExchangeRate] = useState();
+    useUpbitWebsocket();
+    /**
+         * 이제해야할것. 
+         * reduxItems에서 krw데이터만 가져와서 upbitBinance변수에 저장해야
+         * 거래대금순으로 정렬
+         * 바이낸스도 매핑해야
+         */
+    useEffect(() => {
+        //두나무의 환율 api 가져오기
+        const fetchExchangeRate = async () => {
+            const result = await axios.get('https://quotation-api-cdn.dunamu.com/v1/forex/recent?codes=FRX.KRWUSD')
+            console.log("환율", result.data);
+            console.log("야호", result.data[0].basePrice)
+            setExchangeRate(result.data[0].basePrice)
+        }
+        fetchExchangeRate();
+    }, [])
     useEffect(() => {
         if (upbitcoins) {
-            console.log("캐싱", upbitcoins);
+            console.log("리덕스테스트", reduxItems);
+            //krw만 필터링
+            const newReduxItems = reduxItems.filter((item: any) => item.ticker.startsWith("KRW-"))
+            //거래대금순 정렬
+            newReduxItems.sort((a, b) => b.acc_trade_price_24h - a.acc_trade_price_24h);
+
+            // const kimchiItems = newReduxItems.map((item: any) => ({
+            //     ...item,
+            //     binance_trade_price: 0,
+            // }))
+
+            // 기존 kimchi 상태와 병합하여 binance_trade_price를 유지
+            const updatedKimchi = newReduxItems.map((newItem: any) => {
+                const existingItem = kimchi.find((oldItem) => oldItem.ticker === newItem.ticker);
+                // return {
+                //     ...newItem,
+                //     binance_trade_price: (existingItem?.binance_trade_price !== 0)
+                //      ? existingItem.binance_trade_price : 0
+                // };
+                return {
+                    ...newItem,
+                    binance_trade_price: (existingItem?.binance_trade_price !== 0)
+                        ? existingItem?.binance_trade_price : 0
+                };
+            });
+            setKimchi(updatedKimchi)
+
+
+            //console.log("캐싱", upbitcoins);
             //upbitcoins.shortname += usdt@trade
             //아.. shortname으로 하면안되네.. 개기찮아..
             const upbitdata = upbitcoins.map((item: any) => item.shortname.toLowerCase() + "usdt@trade")
@@ -87,7 +153,10 @@ export const KimchiPremium = () => {
              */
 
         }
-    }, [upbitcoins])
+    }, [upbitcoins, reduxItems])
+    // 미국 달러(USD)를 대한민국 원(KRW)으로 변환할 때의 환율 정보를 가져오는 함수
+
+
     useEffect(() => {
         // const ws = new WebSocket('wss://stream.binance.com:9443/ws/!ticker@arr')
         // //const ws = new WebSocket('wss://ws-api.binance.com:443/ws-api/v3');
@@ -122,10 +191,10 @@ export const KimchiPremium = () => {
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
-
+            console.log("ㅅㅂㅋㅋㅋ", data.s)
 
             // data.s가 존재하고, USDT를 포함하는지 확인
-            if (data.s && data.s.includes("USDT")) {
+            if (exchangeRate && data.s && data.s.includes("USDT")) {
                 const symbol = data.s.split("USDT")[0];
                 console.log("바이낸스", symbol, "가격: ", data.p);
                 setUpbitBinance(prev => prev.map((item: any) =>
@@ -136,22 +205,38 @@ export const KimchiPremium = () => {
                         } : item
                 ))
 
+
+
+
+                setKimchi(prev => prev.map((item: any) =>
+                    (item.shortname === symbol) ? {
+                        ...item,
+                        binance_trade_price: data.p * exchangeRate,
+                    } :
+                        item
+                ))
+                // 바이낸스 가격을 대한민국 원으로 변환하여 binance_trade_price에 저장하는 코드
+                // setKimchi(prev => prev.map((item: any) => {
+                //     if (item.shortname === symbol) {
+                //         // data.p를 대한민국 원으로 변환하여 binance_trade_price에 저장
+                //         convertToKRW(data.p).then(krwAmount => {
+                //             return {
+                //                 ...item,
+                //                 binance_trade_price: krwAmount
+                //             };
+                //         }).catch(error => {
+                //             console.error('Error converting to KRW:', error);
+                //             return item; // 변환 실패 시 기존 값 반환
+                //         });
+                //     } else {
+                //         return item; // shortname이 일치하지 않을 때 기존 값 반환
+                //     }
+                // }));
+                // 비동기 작업을 수행한 후 Promise 배열을 반환
+
+
             }
-            //   if (data && data.e === "trade") {
-            //     const updatedPrices = { ...prices };
 
-            //     if (data.s === "BTCUSDT") {
-            //       updatedPrices.BTC = data.p;
-            //     } else if (data.s === "ETHUSDT") {
-            //       updatedPrices.ETH = data.p;
-            //     } else if (data.s === "SOLUSDT") {
-            //       updatedPrices.SOL = data.p;
-            //     }
-
-            //     if (isSubscribed) {
-            //       setPrices(updatedPrices);
-            //     }
-            //   }
         };
 
         ws.onclose = () => {
@@ -166,14 +251,15 @@ export const KimchiPremium = () => {
             isSubscribed = false;
             ws.close();
         };
-    }, [upbitshortname])//upbitBinance도 deps에 넣으니까 소켓오류남
+    }, [upbitshortname, exchangeRate])//upbitBinance도 deps에 넣으니까 소켓오류남
     const onClickCoinExchange = () => {
         setOpen(prev => !prev);
     }
     //아.. 비교할땐 업비트의 usdt랑 비교해야겠네.. 아님 krw 변환해도될지도..
     if (upbitLoading) return <div>로딩중</div>
+
     return (
-        <div className="container mx-auto px-32 mt-16">
+        <div className="container mx-auto px-64 mt-16">
             <div className="font-semibold text-2xl">
                 김치 프리미엄
             </div>
@@ -214,26 +300,56 @@ export const KimchiPremium = () => {
                 <table className="min-w-full mt-20">
                     <thead>
                         <tr>
+                            <th className="bg-gray-100 text-left text-slate-400">#</th>
                             <th className="bg-gray-100 text-left">코인명</th>
-                            <th className="bg-gray-100 text-left" >업비트</th>
-                            <th className="bg-gray-100 text-left">바이낸스</th>
-                            <th className="bg-gray-100 text-left">가격차이(퍼센트포함)</th>
+                            <th className="bg-gray-100 text-right" >업비트</th>
+                            <th className="bg-gray-100 text-right">바이낸스</th>
+                            <th className="bg-gray-100 text-right">가격차이(krw)</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
+                        {/* <tr>
                             <td>비트코인</td>
                             <td>98,266,000원</td>
-                            {/* <td>97,496,674원</td> */}
+                            
                             <td>{btcPrice ? btcPrice : 'loading'}</td>
                             <td><span className="text-red-500">0.79% </span>769,325원</td>
-                        </tr>
-                        {upbitBinance.map((item: any, index) => <tr key={index}>
+                        </tr> */}
+                        {/* {upbitBinance.map((item: any, index) => <tr key={index}>
                             <td>{item.koreanname}</td>
                             <td>업비트</td>
                             <td>{item.trade_price}</td>
                             <td>%{upbitBinance.length}개</td>
-                        </tr>)}
+                        </tr>)} */}
+                        {kimchi.map((item: any, index) => {
+                            const tradePrice = item.trade_price;
+                            const binanceTradePrice = item.binance_trade_price;
+                            let kimchiPremium = null;
+                            if (tradePrice !== undefined && binanceTradePrice !== undefined && binanceTradePrice > 0) {
+                                kimchiPremium = ((tradePrice - binanceTradePrice) / binanceTradePrice) * 100;
+                            }
+
+                            return (<tr key={index} className="space-y-2 border-b border-slate-100 items-center">
+                                <td className="p-2">{index + 1}</td>
+                                <td className="p-2 flex flex-row space-x-2 items-center">
+                                    <span><img src={item.image} className="w-6 h-6 rounded-full" /></span>
+                                    <span className="font-medium">{item.shortname}</span>
+                                    <span className="text-xs text-gray-500">{item.koreanname}</span>
+                                </td>
+                                <td className="text-right p-2">{item.trade_price?.toFixed(0)}원</td>
+                                <td className="text-right p-2">{item.binance_trade_price?.toFixed(0)}원</td>
+                                <td className="text-right p-2">
+                                    <div className="flex flex-col">
+                                        {(kimchiPremium !== null) && <span className={`${kimchiPremium > 0 ? "text-red-500" : "text-blue-600"}`}>{kimchiPremium.toFixed(2)}%</span>}
+                                        {
+                                            (item.binance_trade_price > 0)
+                                            && <span>{parseFloat(item.trade_price?.toFixed(0)) - parseFloat(item?.binance_trade_price.toFixed(0))}원</span>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>)
+                        }
+                        )}
 
                     </tbody>
 
