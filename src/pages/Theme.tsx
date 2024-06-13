@@ -18,6 +18,8 @@ interface NewCoins {
     ticker: string,
     image: string,
     shortname: string,
+    signed_change_rate: number,
+    change: string,
 }
 interface NewThemes {
     theme: string,
@@ -82,7 +84,7 @@ export const Theme = () => {
         //filter함수 써볼까
         //먼저 for문으로 매핑하고 그다음 개선해보자. promise All?
 
-        console.log("후우...", themes);
+        console.log(themes);
         //이렇게 하면안되고.. 테마를 기준으로 해야하는디
         if (upbitcoins) {
             const mappedTheme = themes.map((theme: any) => {
@@ -124,22 +126,62 @@ export const Theme = () => {
                 console.log("후우움", response.data);
 
                 //여기서 가격 매핑
-                // mappedThemes.map((theme: any) => {
-                //     const coinlist = theme.coins.map((ticker: any) => {
-                //         const result = response.data.find((item: any) => item.market === ticker)
-                //         return {
-                //             ...ticker, //이게맞나..
-                //             trade_price: result.trade_price,
-                //         }
-                //     })
-                //     console.log("이게맞나", coinlist);
-                // })
+                const finalThemes = mappedThemes.map((theme: any) => {
+                    const coinlist = theme.coins.map((ticker: any) => {
+                        const result = response.data.find((item: any) => item.market === ticker.ticker)
+                        console.log("종가", result.trade_price)
+                        return {
+                            ticker: ticker.ticker,
+                            signed_change_rate: result.signed_change_rate,
+                            change: result.change,
+                            image: ticker.image,
+                            shortname: ticker.shortname,
+                        }
+
+                        // return {
+                        //     ...ticker, //이게맞나..
+                        //     trade_price: result.trade_price,
+                        // }
+                    })
+                    return {
+                        theme: theme.theme,
+                        name: theme.name,
+                        description: theme.description,
+                        coins: coinlist,
+                    }
+                })
+                console.log(finalThemes);
+                setMappedThemes(finalThemes);
             } catch (error) {
                 console.log(error);
             }
         }
-        fetchUpbitPrice();
+        if (mappedThemes) {
+            fetchUpbitPrice();
+        }
     }, [mappedThemes, themes])
+    const calculateAvgChangeRate = (coins: NewCoins[]) => {//item.coins를 넘겨줌
+        /**
+         * 알고리즘
+         * 1. 
+         */
+        // let tmp = [{x : 1}, {x: 2}, {x: 3}].reduce((accumulator, currentValue) => accumulator + currentValue.x);
+        // countRiseCoins(coins);
+        var initialValue = 0;
+
+        var sum2 = coins.reduce(
+            (accumulator: any, currentValue: any) => accumulator + currentValue.signed_change_rate,
+            initialValue,
+        )
+        return sum2;
+    }
+    const countRiseCoins = (coins: NewCoins[]) => {
+        // filter 써야겟네
+        console.log("몇개 상승?", coins)
+        const result = coins.filter((item: any) => item.change === "RISE")
+        console.log(result);
+        return result.length;
+    }
 
     if (upbitLoading) return <div>loading...</div>
     return (
@@ -156,7 +198,15 @@ export const Theme = () => {
                             <div className="text-xs text-gray-500 m-2">{item.description}</div>
                         </div>
                         <div className="w-2/4">
-                            <div className="text-xs text-gray-400 m-2">n개 중 m개 상승</div>
+                            <div className="flex flex-row space-x-2">
+                                <div className="text-xs text-gray-400">{item.coins.length}개 중 {countRiseCoins(item.coins)}개 상승</div>
+                                <div className="flex flex-row text-xs text-gray-400">{item.coins.slice(0, 1).map((c, i) => <div className="flex flex-row">
+                                    {i + 1}위
+                                    <img src={c.image} className="w-3 h-3 rounded-full" />
+                                    <span className="text-xs">{c.shortname}</span>
+                                    <span className="text-xs text-red-500">{c.signed_change_rate}%</span>
+                                </div>)}</div>
+                            </div>
                             <div className="flex flex-row flex-wrap space-x-1">
                                 {item.coins.map((coin, idx) =>
                                     <div key={idx} className="flex m-1 text-xs text-gray-600 rounded-full border border-gray-400 inline-block px-2 py-1 ">
@@ -166,7 +216,9 @@ export const Theme = () => {
                             </div>
                         </div>
                         <div className="w-1/4">
-                            <div className="text-xs text-red-600 bg-red-100 inline-block px-1 py-2 rounded">섹터 평균 상승률</div>
+                            <div className="text-sm text-red-600 bg-red-100 inline-block p-2 rounded">
+                                {calculateAvgChangeRate(item.coins).toFixed(2)}%
+                            </div>
                         </div>
                     </div>))}
                 </div>
