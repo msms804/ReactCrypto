@@ -1,8 +1,8 @@
 import { configureStore, createSlice } from '@reduxjs/toolkit'
 import counterReducer, { counterSlice } from './upbitSlice'
+import upbitThemeReducer from './upbitThemeSlice'
 
 interface UpbitCoin {
-
     koreanname: string,
     englishname: string,
     theme: string,
@@ -42,6 +42,7 @@ const upbitCoinSlice = createSlice({
         }
     }
 })
+
 //액션 및 리듀서 내보내기
 export const { setUpbit, updateUpbitPrice } = upbitCoinSlice.actions;
 export const upbitReducers = upbitCoinSlice.reducer;
@@ -52,15 +53,9 @@ export const store = configureStore({
         // counter: counterSlice,
         upbit: upbitReducers,
         //upbitTradePrice:  
+        theme: upbitThemeReducer,
     }
 })
-/**
- * 아오 머리아파
- * 1. 일단 리액트쿼리로 디비에서 받아왔음
- * 2. 그 데이터 store에 저장? 
- * 3. 소켓으로 받을때마다 가격 갱신
- * 
- */
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<typeof store.getState>
