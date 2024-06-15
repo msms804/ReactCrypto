@@ -4,6 +4,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { SevenDays } from "./SevenDays";
 import useUpbitCoins from "../queries/upbitcoins";
 import { Search } from "./Search";
+import { useDispatch, useSelector } from "react-redux";
+import { setUpbit, updateUpbitPrice } from "../store/store";
+import useUpbitWebsocket from "../hooks/useUpbitWebsocket";
+import { RootState } from '../store/store'
 
 interface Market {
     market: string;
@@ -47,8 +51,28 @@ const CoinList = () => {
     const [updatedUpbitCoins, setUpdatedUpbitCoins] = useState<upbit[]>([]);
     const [usdtUpbitCoins, setUsdtUpbitCoins] = useState<upbit[]>([])//updatedUpbitCoins중 usdt만 필터링한것
     const [krwUpbitCoins, setKrwUpbitCoins] = useState<upbit[]>([])//updatedUpbitCoins중 krw만 필터링한것
+    const dispatch = useDispatch();
+    const reduxUpbitCoins = useSelector((state: RootState) => state.upbit.coins)
+    const [reduxKrwCoins, setReduxKrwCoins] = useState<upbit[]>([]);
+    const [reduxUsdtCoins, setReduxUsdtCoins] = useState<upbit[]>([])
+    useUpbitWebsocket();
 
+
+
+    //krw, usdt 분류 / 거래대금순 정렬
     useEffect(() => {
+        const reduxKRW = reduxUpbitCoins.filter((item) => item.ticker.includes("KRW"));
+        const reduxUSDT = reduxUpbitCoins.filter((item) => item.ticker.includes("USDT"));
+        reduxKRW.sort((a, b) => b.acc_trade_price_24h - a.acc_trade_price_24h)
+        reduxUSDT.sort((a, b) => b.acc_trade_price_24h - a.acc_trade_price_24h)
+        //console.log("리덕스 krw", reduxUSDT.length)
+        setReduxKrwCoins(reduxKRW);
+        setReduxUsdtCoins(reduxUSDT);
+    }, [reduxUpbitCoins])
+
+    /**
+     * 
+     * useEffect(() => {
         const fetchMarketData = async () => {//마켓 분류 코드 (krw / usd)
             try {
                 const result = await axios.get("https://api.upbit.com/v1/market/all?isDetails=false");
@@ -90,6 +114,9 @@ const CoinList = () => {
                     // console.log("코인게코 업비트에 매핑", newUpbitCoins)
                     // setUpdatedUpbitCoins(newUpbitCoins);
                     setUpdatedUpbitCoins(upbitcoins)
+                    //리덕스에 저장
+                    //dispatch(setUpbit(upbitcoins))
+
                 } catch (error) {
                     console.error(error);
                 }
@@ -97,8 +124,8 @@ const CoinList = () => {
             }
         }
         fetchGeckoImgs();
-    }, [upbitcoins])
-
+    }, [upbitcoins, dispatch])
+*/
     const saveInDB = async (e: any) => {
         e.preventDefault();
         const imsi = updatedUpbitCoins.map((item) => ({
@@ -135,7 +162,8 @@ const CoinList = () => {
         //     console.log("코인저장실패", error);
         // }
     }
-    useEffect(() => {
+    /**
+    *     useEffect(() => {
         const fetchCoinData = async () => {
             const tickerResult = await axios.get('https://api.upbit.com/v1/ticker', {
                 params: { markets: symbols.join(',') }
@@ -235,6 +263,16 @@ const CoinList = () => {
                 const receivedData = JSON.parse(text);
                 console.log("받은데이터", receivedData)
                 //여기서 매핑해야
+                if (receivedData) {
+                    dispatch(updateUpbitPrice({
+                        upbitticker: receivedData.code,
+                        upbitTradePrice: receivedData.trade_price,
+                        upbitacc: receivedData.acc_trade_price_24h,
+                        upbitchangerate: receivedData.signed_change_rate,
+                        upbitchange: receivedData.change,
+                    }))
+                }
+
                 setUpdatedCoins(prev => prev.map(coin =>
                     (coin.market === receivedData.code) ? { ...coin, ...receivedData } : coin))
                 //setBitTicker(receivedData.code);
@@ -249,7 +287,6 @@ const CoinList = () => {
                         signed_change_rate: receivedData.signed_change_rate, //등락폭
                         change: receivedData.change,    //상승, 보합, 하락
                     } : coin))
-
             });
         }
         ws.onclose = () => {
@@ -260,39 +297,12 @@ const CoinList = () => {
             ws.close();
         }
     }, [symbols])
-    // useEffect(() => {//3. 네임에 해당하는 가격들 매핑하고 렌더링
-    //     if (prices !== undefined && bitTicker === markets[0]?.market) {
-    //         const copyData = markets.map(coin => ({ ...coin, price: prices }));
-    //         setMarkets(copyData);
-    //     }
-    // }, [bitTicker, markets[0]?.market, prices])
 
-    /** 알고리즘
-     * 1. market을 담을 수 있는 state 변수 만든다
-     * 2. 소켓으로 가져온 데이터들의 티커에 해당하는 가격들을 붙인다?
-     * 3. market에 이어붙이거나 
-     * 굳이 ticker변수를..? --> 이렇게하면 map함수할때 번거롭지않나..
-     * 
-     * test
-     * 1. 소켓으로 비트코인의 정보 가져온다 --> o
-     * 2. if 소켓으로 가져온 비트의 티커가 markets의 티커와 같다면 --> o
-     * 3. markets 객체에 삽입(가격정보를) 
-     * 4. 삽입은 spread연산자로
-     * 
-     * -- 7days차트
-     * 
-     * 2. 가격 get요청으로 불러와서 맞는 티커?에 매핑?
-     * 3. 7days 이렇게 차트만들수 있을듯 
-     * 
-     * --페이지네이션
-     * 1. krw/ btc나눠서 state에 저장
-     * 2. 10개씩 불러온다?
-     * 3. 밑에 1 2 3 4 ... 이렇게 표시해야
-     */
+ */
     if (upbitLoading) return <div>upbit loading...</div>
     return (<>
         <div className="container mx-auto mt-8">
-            <div className="flex flex-row space-x-2 ">{/**왜 이렇게 밑에 넣어야함;;; */}
+            <div className="flex flex-row space-x-2 justify-between m-4">{/**왜 이렇게 밑에 넣어야함;;; */}
                 <div className=" flex flex-row bg-slate-100 rounded-full p-1 space-x-2">
                     <div className={`rounded-full p-2  text-sm ${selectedCurrency === "KRW" ? 'bg-blue-500 text-white' : "bg-white"}`}
                         onClick={() => { setSelectedCurrency("KRW") }}>원화</div>
@@ -305,93 +315,57 @@ const CoinList = () => {
             <table className="min-w-full bg-white">
                 <thead >
                     <tr>
-                        <th className="py-2 bg-gray-100 border-b text-left rounded-tl-lg"></th>
-                        <th className="py-2 bg-gray-100 border-b text-left">#</th>
-                        <th className="py-2 bg-gray-100 border-b text-left">코인명</th>
-                        <th className="py-2 bg-gray-100 border-b text-left">가격</th>
-                        <th className="py-2 bg-gray-100 border-b text-left">등락폭(24h)</th>
+                        <th className="py-2  border-b text-left rounded-tl-lg"></th>
+                        <th className="py-2  border-b text-left text-xs text-gray-500">#</th>
+                        <th className="py-2  border-b text-left text-xs text-gray-500">코인명</th>
+                        <th className="py-2 border-b text-left text-xs text-gray-500">가격</th>
+                        <th className="py-2 border-b text-left text-xs text-gray-500">등락폭(24h)</th>
 
-                        <th className="py-2 bg-gray-100 border-b text-left">거래대금(24h)</th>
-                        <th className="py-2 bg-gray-100 border-b text-left rounded-tr-lg">30D</th>
+                        <th className="py-2  border-b text-left text-xs text-gray-500">거래대금(24h)</th>
+                        <th className="py-2  border-b text-left rounded-tr-lg text-xs text-gray-500">가격(30Days)</th>
                     </tr>
                 </thead>
                 <tbody>
                     {selectedCurrency === "KRW" ?
-                        krwUpbitCoins.slice(0, 10).map((item, index) => (
+                        reduxKrwCoins.slice(0, 10).map((item, index) => (
                             <tr key={index}>
                                 <td>
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 w-3 h-3">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
                                     </svg>
                                 </td>
-                                <td className="py-2 px-4 border-b text-sm text-left">{index + 1}</td>
-                                <td className="flex flex-row items-center">
+                                <td className="py-2 px-4 text-sm text-left">{index + 1}</td>
+                                <td className="flex flex-row items-center space-x-2">
                                     <span><img src={item.image} className="w-7 h-7 rounded-full" /></span>
                                     <span className="font-medium">{item.shortname}</span>
                                     <span className="text-xs text-gray-500 ml-2">{item.koreanname}</span>
+
                                 </td>
-                                <td className={`${item.change === "RISE" ? "text-red-500" : "text-blue-600"} font-medium text-sm`}>{item.trade_price?.toLocaleString('ko-KR')}</td>
-                                <td className={`${item.change === "RISE" ? "text-red-500" : "text-blue-600"} font-medium text-sm`}>{(item.signed_change_rate * 100).toFixed(2)}%</td>
-                                <td className="text-sm"> {item.acc_trade_price_24h?.toLocaleString('ko-KR')}</td>
-                                <td><SevenDays ticker={item.ticker} change={item.change} /></td>
+                                <td className={`${item.change === "RISE" ? "text-red-500" : "text-blue-600"} font-light`}>{item.trade_price?.toLocaleString('ko-KR')}</td>
+                                <td className={`${item.change === "RISE" ? "text-red-500" : "text-blue-600"} font-light`}>{(item.signed_change_rate * 100).toFixed(2)}%</td>
+                                <td className="font-light"> {item.acc_trade_price_24h?.toLocaleString('ko-KR')}</td>
+                                <td className="text-right"><SevenDays ticker={item.ticker} change={item.change} /></td>
 
 
                             </tr>
-                        )) :/**
-                                                <td>
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 w-3 h-3">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-                                </svg>
-                            </td>
-                            <td className="py-2 px-4 border-b">{index + 1}</td>
-                            <td className="flex flex-row items-center">
-                                <span><img src="" className="w-8 h-8" /></span>
-                                <span className="font-medium">{item.market.split('-')[1]}</span>
-                                <span className="text-xs text-gray-500 ml-2">{item.korean_name}</span>
-                            </td>
-                            <td className={`${item.change === "RISE" ? "text-red-500" : "text-blue-600"} font-medium`}>{item.trade_price.toLocaleString('ko-KR')}</td>
-                            <td className={`${item.change === "RISE" ? "text-red-500" : "text-blue-600"} font-medium`}>{(item.signed_change_rate * 100).toFixed(2)}%</td>
-                            <td> {item.acc_trade_price_24h.toLocaleString('ko-KR')}</td>
-                            <td><SevenDays ticker={item.market} change={item.change} /></td>
-
-                     */
-                        // usdtCoins.map((item, index) => (
-                        //     <tr key={index}>
-                        //         <td>
-                        //             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 w-3 h-3">
-                        //                 <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-                        //             </svg>
-                        //         </td>
-                        //         <td className="py-2 px-4 border-b">{index + 1}</td>
-                        //         <td className="flex flex-row items-center">
-                        //             <span><img src="" className="w-8 h-8" /></span>
-                        //             <span className="font-medium">{item.market.split('-')[1]}</span>
-                        //             <span className="text-xs text-gray-500 ml-2">{item.korean_name}</span>
-                        //         </td>
-                        //         <td>{item.trade_price.toLocaleString('ko-KR')}</td>
-                        //         <td>{(item.signed_change_rate * 100).toFixed(2)}%</td>
-                        //         <td> {item.acc_trade_price_24h.toLocaleString('ko-KR')}</td>
-                        //         <td><SevenDays ticker={item.market} change={item.change} /></td>
-
-                        //     </tr>
-                        // ))
-                        usdtUpbitCoins.slice(0, 10).map((item, index) => (
+                        )) :
+                        reduxUsdtCoins.slice(0, 10).map((item, index) => (
                             <tr key={index}>
                                 <td>
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 w-3 h-3">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
                                     </svg>
                                 </td>
-                                <td className="py-2 px-4 border-b">{index + 1}</td>
-                                <td className="flex flex-row items-center">
+                                <td className="py-2 px-4">{index + 1}</td>
+                                <td className="flex flex-row items-center space-x-2">
                                     <span><img src={item.image} className="w-7 h-7 rounded-full" /></span>
                                     <span className="font-medium">{item.shortname}</span>
                                     <span className="text-xs text-gray-500 ml-2">{item.koreanname}</span>
                                 </td>
-                                <td className={`${item.change === "RISE" ? "text-red-500" : "text-blue-600"} font-medium`}> {item.trade_price.toLocaleString('ko-KR')}</td>
-                                <td className={`${item.change === "RISE" ? "text-red-500" : "text-blue-600"} font-medium`}>{(item.signed_change_rate * 100).toFixed(2)}%</td>
-                                <td > {item.acc_trade_price_24h.toLocaleString('ko-KR')}</td>
-                                <td><SevenDays ticker={item.ticker} change={item.change} /></td>
+                                <td className={`${item.change === "RISE" ? "text-red-500" : "text-blue-600"} font-light`}> {item.trade_price.toLocaleString('ko-KR')}</td>
+                                <td className={`${item.change === "RISE" ? "text-red-500" : "text-blue-600"} font-light`}>{(item.signed_change_rate * 100).toFixed(2)}%</td>
+                                <td className="font-light"> {item.acc_trade_price_24h.toLocaleString('ko-KR')}</td>
+                                <td className="text-right"><SevenDays ticker={item.ticker} change={item.change} /></td>
 
                             </tr>
                         ))
