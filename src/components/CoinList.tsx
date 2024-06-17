@@ -8,6 +8,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { setUpbit, updateUpbitPrice } from "../store/store";
 import useUpbitWebsocket from "../hooks/useUpbitWebsocket";
 import { RootState } from '../store/store'
+import { Cointable } from "./Cointable";
+import { IUpbitThemes } from '../typings/db';
+
 
 interface Market {
     market: string;
@@ -55,6 +58,11 @@ const CoinList = () => {
     const reduxUpbitCoins = useSelector((state: RootState) => state.upbit.coins)
     const [reduxKrwCoins, setReduxKrwCoins] = useState<upbit[]>([]);
     const [reduxUsdtCoins, setReduxUsdtCoins] = useState<upbit[]>([])
+    const [themes, setThemes] = useState<IUpbitThemes[]>();
+    const [selectedTheme, setSelectedTheme] = useState<IUpbitThemes>();
+    const [selectedThemeCoins, setSelectedThemeCoins] = useState<string[]>();
+    const [inputValue, setInputValue] = useState('');
+
     useUpbitWebsocket();
 
 
@@ -69,6 +77,48 @@ const CoinList = () => {
         setReduxKrwCoins(reduxKRW);
         setReduxUsdtCoins(reduxUSDT);
     }, [reduxUpbitCoins])
+
+
+    //코인 검색기능
+    const handleChangeValue = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        // setInputValue(value);
+        // const result = filteredKrwCoinList.filter((item) => item.koreanname.includes(value));
+        // setReduxKrwCoins(result);
+    }
+    //테마별 코인 필터링 코드
+    /**
+ * 1. 만약 rwa 눌렀음
+ * 2. rwa에 들어있는 coins의 배열들 과
+ * 3. reduxKrwCoins에 있는 coins들을 비교해야
+ * 4. 그리고 filter
+ */
+
+    useEffect(() => {
+        const fetchUpbitThemes = async () => {
+            try {
+                const result = await axios.get('http://localhost:8080/api/theme')
+                console.log("테마리스트", result.data);
+                setThemes(result.data);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        fetchUpbitThemes();
+    }, [])
+
+    const handleThemeChange = (theme: any) => {
+        console.log("누른테마는?", theme)
+
+        setSelectedTheme(theme.theme);
+        setSelectedThemeCoins(theme.coins)
+    }
+    const filteredKrwCoinList = (selectedTheme?.theme === 'ALL')
+        ? reduxKrwCoins
+        : reduxKrwCoins.filter((item) => selectedThemeCoins?.includes(item.ticker))
+    console.log("후.. 힘드노..", filteredKrwCoinList)//이거 계속찍히네
+
+
 
     /**
      * 
@@ -309,8 +359,33 @@ const CoinList = () => {
                     <div className={`rounded-full p-2 text-sm ${selectedCurrency === "USDT" ? 'bg-blue-500 text-white' : 'bg-white'}`}
                         onClick={() => { setSelectedCurrency("USDT") }}>USDT</div>
                 </div>
-                <Search />
-                {/* <button onClick={saveInDB}>코인 디비에저장</button> */}
+                <div className="relative">
+
+                    <input type="search" placeholder="코인검색"
+                        className="w-full text-sm pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value={inputValue}
+                        onChange={handleChangeValue}
+                    />
+                    <div className='absolute top-1/2 transform -translate-y-1/2  left-3 text-gray-500'>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"
+                            className="w-5 h-5">
+                            <path fillRule="evenodd" d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z" clipRule="evenodd" />
+                        </svg>
+
+                    </div>
+
+                </div>                {/* <button onClick={saveInDB}>코인 디비에저장</button> */}
+            </div>
+            <div>
+                <div className='flex flex-row space-x-2 m-4'>
+                    {themes?.map((item) =>
+                        <button
+                            onClick={() => { handleThemeChange(item) }}
+                            key={item.theme}
+                            className={`p-1 text-xs text-slate-500 border-b border-slate-200 ${selectedTheme?.theme === item.theme ? 'bg-slate-200' : ''}`}
+                        >{item.name}</button>)}
+                </div>
+                {/* <Cointable /> */}
             </div>
             <table className="min-w-full bg-white">
                 <thead >
@@ -327,7 +402,7 @@ const CoinList = () => {
                 </thead>
                 <tbody>
                     {selectedCurrency === "KRW" ?
-                        reduxKrwCoins.slice(0, 10).map((item, index) => (
+                        filteredKrwCoinList.slice(0, 10).map((item, index) => (
                             <tr key={index}>
                                 <td>
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6 w-3 h-3">
