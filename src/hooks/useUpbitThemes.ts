@@ -16,8 +16,11 @@ const useUpbitThemes = () => {
     useEffect(() => {
         const fetchUpbitThemes = async () => {
             const result = await axios.get('http://localhost:8080/api/theme')
-            setThemes(result.data)
             //console.log("..", result.data)
+            const filteredThemes = result.data.filter((item: any) => item.theme !== "ALL")
+            //setThemes(result.data)
+            setThemes(filteredThemes);
+
         }
         fetchUpbitThemes();
     }, [])
