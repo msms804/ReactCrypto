@@ -59,7 +59,7 @@ const CoinList = () => {
     const [reduxKrwCoins, setReduxKrwCoins] = useState<upbit[]>([]);
     const [reduxUsdtCoins, setReduxUsdtCoins] = useState<upbit[]>([])
     const [themes, setThemes] = useState<IUpbitThemes[]>();
-    const [selectedTheme, setSelectedTheme] = useState<IUpbitThemes>();
+    const [selectedTheme, setSelectedTheme] = useState<IUpbitThemes>({ theme: "ALL", name: "모든코인", description: "", coins: [] });
     const [selectedThemeCoins, setSelectedThemeCoins] = useState<string[]>();
     const [inputValue, setInputValue] = useState('');
 
@@ -110,14 +110,13 @@ const CoinList = () => {
     const handleThemeChange = (theme: any) => {
         console.log("누른테마는?", theme)
 
-        setSelectedTheme(theme.theme);
+        setSelectedTheme(theme);
         setSelectedThemeCoins(theme.coins)
     }
     const filteredKrwCoinList = (selectedTheme?.theme === 'ALL')
         ? reduxKrwCoins
         : reduxKrwCoins.filter((item) => selectedThemeCoins?.includes(item.ticker))
     console.log("후.. 힘드노..", filteredKrwCoinList)//이거 계속찍히네
-
 
 
     /**
@@ -378,6 +377,7 @@ const CoinList = () => {
             </div>
             <div>
                 <div className='flex flex-row space-x-2 m-4'>
+
                     {themes?.map((item) =>
                         <button
                             onClick={() => { handleThemeChange(item) }}
