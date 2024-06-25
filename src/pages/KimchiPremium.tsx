@@ -5,6 +5,8 @@ import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
 import useUpbitWebsocket from "../hooks/useUpbitWebsocket";
 import axios from "axios";
+import dayjs from "dayjs";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface upbit {
     koreanname: string,
@@ -43,23 +45,18 @@ interface kimchi {
     change: string,
     binance_trade_price: number,
 }
+
+const saveRateInDB = async (rate: any) => {//디비에 저장하는 로직
+    console.log("머리아파ㅡㅡ", rate);
+    await axios.post('http://localhost:8080/api/save/rates', { baseprice: rate.baseprice, date: rate.date })
+}
+const fetchRateFromDB = async () => {//디비에서 가져오는 로직
+    const result = await axios.get('http://localhost:8080/api/rates');
+    console.log("디비에서 꺼낸 환율", result.data);
+    return result.data;
+}
+
 //https://binance-docs.github.io/apidocs/websocket_api/en/#general-api-information
-/**
- * 
- * 바이낸스는 rate limit 이 있음. 
- * 그래서 뭔가 처리해줘야
- * 1. 일단 리액트쿼리로 업비트 리스트 가져온다 --> o
- * 2. shortname에 usdt붙이고 toUpperCase    --> o
- * --> 그리고 바이낸스에서 받은것과 비교
- * 3. 새로운 state에서 find해서 바이낸스 코인매핑
- * 가져올때 usdt인것을 가져와야함, 그리고 원화로 바꿔야
- * 4. 렌더링
- * 
- * !!! 알고리즘 !!!
- * 
- * 리스트 순서를 김프순으로 해도될지도,,
- * 
- */
 export const KimchiPremium = () => {
     const [coinExchange, setCoinExchange] = useState([{
         koreanname: "업비트",
@@ -80,23 +77,73 @@ export const KimchiPremium = () => {
     const [kimchi, setKimchi] = useState<kimchi[]>([]);
     const reduxItems = useSelector((state: RootState) => state.upbit.coins)
     const [exchangeRate, setExchangeRate] = useState();
+
+    const queryClient = useQueryClient();
+    const [rate, setRate] = useState();
+    const { data, error, isLoading } = useQuery({
+        queryKey: ['exchangeRate'],
+        queryFn: fetchRateFromDB,
+    });
+
     useUpbitWebsocket();
-    /**
-         * 이제해야할것. 
-         * reduxItems에서 krw데이터만 가져와서 upbitBinance변수에 저장해야
-         * 거래대금순으로 정렬
-         * 바이낸스도 매핑해야
-         */
+    //두나무의 환율 api 가져오기
+    const fetchExchangeRate = async () => {
+        const result = await axios.get('https://quotation-api-cdn.dunamu.com/v1/forex/recent?codes=FRX.KRWUSD')
+        console.log("환율", result.data);
+        console.log("야호", result.data[0].basePrice)
+        setExchangeRate(result.data[0].basePrice)
+        //axios.post('')
+        return { basePrice: result.data[0].basePrice, date: result.data[0].date };
+    }
     useEffect(() => {
-        //두나무의 환율 api 가져오기
-        const fetchExchangeRate = async () => {
-            const result = await axios.get('https://quotation-api-cdn.dunamu.com/v1/forex/recent?codes=FRX.KRWUSD')
-            console.log("환율", result.data);
-            console.log("야호", result.data[0].basePrice)
-            setExchangeRate(result.data[0].basePrice)
+        //fetchRateFromDB();
+        /**
+         * 1. 디비에서 최근 환율, 날짜 가져오는로직 fetchRateFromDB (useQuery 사용?)
+         * 2. 가져온 날짜가 오늘이라면( 아마 dayjs 활용하면 될듯 )
+         * 3. 그대로  쓴다
+         * 4. 가져온 날자가 지난날이면
+         * 5. 디비에 새로저장
+         * 6. 다시 디비에서 가져온다.
+         */
+        const fetchAndSaveRate = async () => {
+            // fetchRateFromDB();
+            // fetchExchangeRate().then(apiRate => {//비동기 어쩌고
+            //     console.log("으 머리야", apiRate.basePrice, apiRate.date);
+            // });
+            const latestRate = await fetchRateFromDB();
+            console.log("훔훔1", latestRate[0]);
+            console.log("훔훔3", dayjs(latestRate[0].date))
+
+            const lastUpdated = latestRate[0]?.date ? dayjs(latestRate[0].date) : null;
+            console.log("훔훔2", lastUpdated);
+            const now = dayjs();
+
+            //생각해보니까 이거 주말엔 없던데..ㅔ;;
+            //환율의 생성? 날짜 말고 나한테 보낸날짜를 저장하면 될거같기도..
+            if (!lastUpdated || now.diff(lastUpdated, 'day') >= 1) {
+                console.log("훔훔4  이거나오면안됨")
+                const rate = await fetchExchangeRate();
+                console.log("api에서 받은 환율, 날짜", rate.basePrice, rate.date)
+                await saveRateInDB({ baseprice: rate.basePrice, date: rate.date });
+                queryClient.invalidateQueries({ queryKey: ['exchangeRate'] });
+            }
         }
-        fetchExchangeRate();
-    }, [])
+        fetchAndSaveRate();
+    }, [queryClient])
+
+    useEffect(() => { console.log("리액트 쿼리로 받은 환율", data) }, [data])
+
+    /**
+     * 1. 디비에서 최근 환율 가져오기 get rate
+     * 2. 만약 최근환율이 오늘게 아니라면 rate !== today
+     * 3. 두나무 환율 api에서 가져와서 디비에 저장 post rate
+     * 4. 다시 최근환율 가져오기 get rate
+     * 
+     * 필요한것 : 
+     * 1. server에 저장할때 오늘의 환율과 오늘의 날짜 저장
+     * 2. 이거 디비에 저장하는 코드
+     * 3. 이거 디비에서 꺼내오는코드
+     */
     useEffect(() => {
         if (upbitcoins) {
             console.log("리덕스테스트", reduxItems);
@@ -191,7 +238,7 @@ export const KimchiPremium = () => {
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            console.log("ㅅㅂㅋㅋㅋ", data.s)
+            console.log("", data.s)
 
             // data.s가 존재하고, USDT를 포함하는지 확인
             if (exchangeRate && data.s && data.s.includes("USDT")) {
@@ -257,6 +304,7 @@ export const KimchiPremium = () => {
     }
     //아.. 비교할땐 업비트의 usdt랑 비교해야겠네.. 아님 krw 변환해도될지도..
     if (upbitLoading) return <div>로딩중</div>
+    if (upbitLoading) return <div>환율 로딩중</div>
 
     return (
         <div className="container mx-auto px-64 mt-16">
@@ -300,11 +348,11 @@ export const KimchiPremium = () => {
                 <table className="min-w-full mt-20">
                     <thead>
                         <tr>
-                            <th className="bg-gray-100 text-left text-slate-400">#</th>
-                            <th className="bg-gray-100 text-left">코인명</th>
-                            <th className="bg-gray-100 text-right" >업비트</th>
-                            <th className="bg-gray-100 text-right">바이낸스</th>
-                            <th className="bg-gray-100 text-right">가격차이(krw)</th>
+                            <th className="text-left border-b text-sm text-gray-500 p-2">#</th>
+                            <th className="text-left border-b text-sm text-gray-500 p-2">코인명</th>
+                            <th className="text-right border-b text-sm text-gray-500 p-2" >업비트</th>
+                            <th className="text-right border-b text-sm text-gray-500 p-2">바이낸스</th>
+                            <th className="text-right border-b text-sm text-gray-500 p-2">가격차이(KRW)</th>
                         </tr>
                     </thead>
                     <tbody>
