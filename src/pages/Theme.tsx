@@ -45,11 +45,109 @@ export const Theme = () => {
     const reduxThemes = useSelector((state: RootState) => state.theme.mappedThemes);
     useUpbitThemes();
 
-    useEffect(() => {
-        console.log("리덕스 테스트", reduxThemes)
-    }, [reduxThemes])
+    // useEffect(() => {
+    //     console.log("리덕스 테스트", reduxThemes)
+    // }, [reduxThemes])
 
 
+    /**
+     * 
+      useEffect(() => {// 이거 걍 리액트쿼리로 빼도?
+           const fetchThemes = async () => {
+               const result = await axios.get('http://localhost:8080/api/theme')
+               console.log("테마", result.data);
+               result.data.map((item: any) => console.log(item.coins))
+               setThemes(result.data)
+               if (upbitcoins) {
+                   console.log(upbitcoins);
+               }
+   
+           }
+           fetchThemes();
+       }, [])
+   
+       //이미지 매핑
+       useEffect(() => {
+           //filter함수 써볼까
+           //먼저 for문으로 매핑하고 그다음 개선해보자. promise All?
+   
+           console.log(themes);
+           //이렇게 하면안되고.. 테마를 기준으로 해야하는디
+           if (upbitcoins) {
+               const mappedTheme = themes.map((theme: any) => {
+                   const mappedCoins = theme.coins.map((ticker: any) => {
+                       const upbitcoin = upbitcoins.find((item: any) => item.ticker === ticker)
+                       return {
+                           ticker: ticker,
+                           image: upbitcoin.image,
+                           shortname: upbitcoin.shortname,
+                           //change: upbitcoin.change, --> 이건 현재가 정보 가져올때 해야~
+                       }
+                   })
+                   return {
+                       theme: theme.theme,
+                       name: theme.name,
+                       description: theme.description,
+                       coins: mappedCoins,
+                   }
+               })
+               setMappedThemes(mappedTheme)
+   
+               dispatch(setUpbitThemes(mappedTheme));
+           }
+       }, [themes, upbitcoins, dispatch])
+       useEffect(() => {
+           console.log("최종: ", mappedThemes)
+           //여기서 또 가격매핑해야
+           //힌트 : flatMap
+           // const response = axios.get('https://api.upbit.com/v1/ticker')
+   
+           const fetchUpbitPrice = async () => {
+               // const result = themes.map((item: any) => item.coins).flat().join(',');
+               // console.log("띰", result);
+               const tickers = mappedThemes.flatMap(theme => theme.coins.map(coin => coin.ticker));
+               const uniqueTickers = [...new Set(tickers)].join(',');
+   
+               if (uniqueTickers) {
+                   try {
+                       const response = await axios.get(`https://api.upbit.com/v1/ticker?markets=${uniqueTickers}`)
+                       console.log("후우움", response.data);
+   
+                       //여기서 가격 매핑
+                       const finalThemes = mappedThemes.map((theme: any) => {
+                           const coinlist = theme.coins.map((ticker: any) => {
+                               const result = response.data.find((item: any) => item.market === ticker.ticker)
+                               console.log("종가", result.trade_price)
+                               return {
+                                   ticker: ticker.ticker,
+                                   signed_change_rate: result.signed_change_rate,
+                                   change: result.change,
+                                   image: ticker.image,
+                                   shortname: ticker.shortname,
+                               }
+   
+                           })
+                           return {
+                               theme: theme.theme,
+                               name: theme.name,
+                               description: theme.description,
+                               coins: coinlist,
+                           }
+                       })
+                       console.log(finalThemes);
+                       setMappedThemes(finalThemes);
+                       dispatch(setUpbitThemes(finalThemes));
+   
+                   } catch (error) {
+                       console.log(error);
+                   }
+               }
+   
+           }
+           if (mappedThemes) {
+               fetchUpbitPrice();
+           }
+       }, [mappedThemes, themes, dispatch])  */
 
     const calculateAvgChangeRate = (coins: IUpbitThemeCoins[]) => {//item.coins를 넘겨줌
         // let tmp = [{x : 1}, {x: 2}, {x: 3}].reduce((accumulator, currentValue) => accumulator + currentValue.x);
@@ -97,7 +195,7 @@ export const Theme = () => {
                             <div className="flex flex-row space-x-4 font-medium">
                                 <div className="text-xs">{item.coins.length}개 중 {countRiseCoins(item.coins)}개 상승</div>
                                 <div className="flex flex-row text-xs border-l border-gray-500 pl-4 space-x-1">
-                                    <span className="font-semibold text-blue-500 text-sm">1위</span>
+                                    <span className="font-semibold bg-[#30d5c8] text-xs p-1 rounded-lg">1위</span>
                                     <img src={setOneCoin(item.coins).image} className="self-center w-3 h-3 rounded-full" />
                                     <span>{setOneCoin(item.coins).shortname}</span>
                                     <span className={`${setOneCoin(item.coins).change === "RISE" ? "text-red-500" : "text-blue-600"}`}>{((setOneCoin(item.coins).signed_change_rate) * 100).toFixed(2)}%</span>

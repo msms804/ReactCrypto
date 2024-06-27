@@ -188,10 +188,21 @@ const CoinList = () => {
         <div className="container mx-auto mt-8">
             <div className="flex flex-row space-x-2 justify-between m-4">{/**왜 이렇게 밑에 넣어야함;;; */}
                 <div className=" flex flex-row bg-slate-100 rounded-full p-1 space-x-2">
-                    <div className={`rounded-full p-2  text-sm ${selectedCurrency === "KRW" ? 'bg-blue-500 text-white' : "bg-white"}`}
+                    <div className={`rounded-full p-2  text-sm ${selectedCurrency === "KRW" ? 'bg-[#30d5c8] text-black' : "bg-white"}`}
                         onClick={() => { setSelectedCurrency("KRW") }}>원화</div>
-                    <div className={`rounded-full p-2 text-sm ${selectedCurrency === "USDT" ? 'bg-blue-500 text-white' : 'bg-white'}`}
+                    <div className={`rounded-full p-2 text-sm ${selectedCurrency === "USDT" ? 'bg-[#30d5c8] text-white' : 'bg-white'}`}
                         onClick={() => { setSelectedCurrency("USDT") }}>USDT</div>
+                </div>
+            </div>
+            <div className="flex flex-row justify-between">
+                <div className='flex flex-row space-x-2 m-4'>
+
+                    {selectedCurrency === "KRW" && themes?.map((item) =>
+                        <button
+                            onClick={() => { handleThemeChange(item) }}
+                            key={item.theme}
+                            className={`p-1 text-xs text-slate-500 border-b border-slate-200 rounded-lg ${selectedTheme?.theme === item.theme ? 'bg-[#30d5c8] text-black' : ''}`}
+                        >{item.name}</button>)}
                 </div>
                 <div className="relative">
 
@@ -209,20 +220,9 @@ const CoinList = () => {
                     </div>
 
                 </div>                {/* <button onClick={saveInDB}>코인 디비에저장</button> */}
-            </div>
-            <div>
-                <div className='flex flex-row space-x-2 m-4'>
 
-                    {selectedCurrency === "KRW" && themes?.map((item) =>
-                        <button
-                            onClick={() => { handleThemeChange(item) }}
-                            key={item.theme}
-                            className={`p-1 text-xs text-slate-500 border-b border-slate-200 rounded-lg ${selectedTheme?.theme === item.theme ? 'bg-blue-500 text-white' : ''}`}
-                        >{item.name}</button>)}
-                </div>
-                {/* <Cointable /> */}
             </div>
-            <div className="overflow-y-auto h-96">
+            <div className="overflow-y-auto h-[32rem]">
                 <table className="min-w-full bg-white">
                     <thead >
                         <tr>
