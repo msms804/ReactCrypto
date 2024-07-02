@@ -34,7 +34,7 @@ const useUpbitWebsocket = () => {
                     const decoder = new TextDecoder("utf-8");
                     const text = decoder.decode(buffer);
                     const receivedData = JSON.parse(text);
-                    console.log("훅으로 받는 업비트데이터", receivedData);
+                    //console.log("훅으로 받는 업비트데이터", receivedData);
 
                     //이제 여기서 실시간 가격 업데이트해야
 
@@ -71,7 +71,7 @@ const useUpbitWebsocket = () => {
 
         }
 
-    }, [upbitcoins])
+    }, [upbitcoins, dispatch])
 
 }
 export default useUpbitWebsocket;
