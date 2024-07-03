@@ -1,6 +1,7 @@
 import { configureStore, createSlice } from '@reduxjs/toolkit'
 import counterReducer, { counterSlice } from './upbitSlice'
 import upbitThemeReducer from './upbitThemeSlice'
+import watchlistReducer from './watchlistSlice'
 
 interface UpbitCoin {
     koreanname: string,
@@ -54,6 +55,7 @@ export const store = configureStore({
         upbit: upbitReducers,
         //upbitTradePrice:  
         theme: upbitThemeReducer,
+        watchlist: watchlistReducer,
     }
 })
 
