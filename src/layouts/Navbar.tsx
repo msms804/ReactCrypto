@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { WatchListModal } from "../components/WatchListModal";
 
 const Navbar = () => {
 
@@ -9,7 +10,7 @@ const Navbar = () => {
                     <div className="flex items-center">
                         <div className="flex-shrink-0">
                             {/* 로고 또는 사이트 이름 */}
-                            <Link to='/' className="font-bold">Logo</Link>
+                            <Link to='/' className="font-bold">minbit</Link>
                         </div>
                         <div className="hidden md:block">
                             {/* 네비게이션 링크들 */}
@@ -21,7 +22,8 @@ const Navbar = () => {
                     </div>
                     {/* 추가적인 네비게이션 요소, 예를 들면 로그인 버튼 */}
                     <div className="hidden md:block">
-                        <div className="ml-4 flex items-center md:ml-6">
+                        <div className="ml-4 flex items-center md:ml-6 space-x-8 text-sm">
+                            <WatchListModal />
                             <div>다크모드</div>
                         </div>
                     </div>
