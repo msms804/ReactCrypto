@@ -25,3 +25,15 @@ export interface IUpbitThemes {
     description: string,
     coins: IUpbitThemeCoins[],
 }
+
+export interface IFearGreedIdx {
+    date: string,
+    todayIdx: string,
+    todayclassification: string,
+    yesterdayIdx: string,
+    yesterdayclassification: string,
+    sevenDaysIdx: string,
+    sevenDaysclassification: string,
+    oneMonthIdx: string,
+    oneMonthclassification: string,
+}
