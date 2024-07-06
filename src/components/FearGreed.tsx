@@ -97,6 +97,7 @@ export const FearGreed = () => {
     };
     const chartSeries = fearGreedIdx !== null ? [fearGreedIdx] : [];
 
+
     const fetchFearGreedIdx = async () => {
         try {
             const response = await axios.get('https://api.alternative.me/fng/', {
@@ -174,31 +175,64 @@ export const FearGreed = () => {
         fetchAndSaveFearAndGreedIdx();
     }, [queryClient, idxData])
 
+
+    const getColorByClassification = (classification: string) => {
+        switch (classification) {
+            case 'Extreme Fear':
+                return '#FF4560';
+            case 'Fear':
+                return '#FEB019';
+            case 'Neutral':
+                return '#FFD400';
+            case 'Greed':
+                return '#A0D468';
+            case 'Extreme Greed':
+                return '#008d62';
+            default:
+                return '#00E396';
+        }
+    }
+    const todayColor = idxData ? getColorByClassification(idxData.todayclassification) : '#00E396';
+    const yesterdayColor = idxData ? getColorByClassification(idxData.yesterdayclassification) : '#00E396';
+    const sevenDaysColor = idxData ? getColorByClassification(idxData.sevenDaysclassification) : '#00E396';
+    const oneMonthColor = idxData ? getColorByClassification(idxData.oneMonthclassification) : '#00E396';
+
+    // 점의 위치 계산 함수 (0 ~ 100 범위, 각 구간 20씩 나눔)
+    const calculateDotPosition = (value: any) => {
+        const totalWidth = 100; // 바의 전체 너비를 100으로 가정
+        const position = (value / 100) * totalWidth;
+        return position;
+    };
+
+    const dotPosition = idxData ? calculateDotPosition(idxData.todayIdx) : 0;
     if (idxLoading) return <div>공탐지수 loading</div>
     return (<>
         <div className='flex flex-row space-x-2'>
             <div className='bg-slate-100 w-3/5 rounded-xl'>
                 <div className='flex flex-row'>
-                    <div className='place-items-start'>
+                    <div className='flex justify-items-start items-start w-1/2'>
                         {idxData !== null ? (
-                            <ReactApexChart options={chartOptions} series={[idxData.todayIdx]} type="radialBar" height="130" />
+                            <ReactApexChart options={{ ...chartOptions, colors: [todayColor] }} series={[idxData.todayIdx]} type="radialBar" height="130" style={{ alignSelf: 'flex-start' }} />
                         ) : (
                             <div>Loading...</div> // 로딩 중일 때 표시
                         )}
                     </div>
-                    <div>
-                        {idxData.todayclassification}
-                    </div>
-                    <div>
-                        받은날짜 : {idxData.date}
+                    <div className='mt-2 flex flex-col justify-center items-center pr-4 w-1/2'>
+                        <div className='text-sm font-bold'>오늘</div>
+                        <div className='text-sm'>{idxData.todayclassification}</div>
                     </div>
                 </div>
+                <div className='text-xs pl-4 pr-4 text-gray-500'>공포탐욕지수는 하루에 한번 갱신됩니다.</div>
 
-                <div className='flex gap-1 mt-2 pl-4 pr-4'>
+                <div className='relative flex gap-1 mt-2 pl-4 pr-4'>
                     <div className='w-1/4 bg-[#FF4560] h-1 mt-2 rounded-lg'></div>
                     <div className='w-1/4 bg-[#FEB019] h-1 mt-2 rounded-lg'></div>
-                    <div className='w-1/4 bg-[#00E396] h-1 mt-2 rounded-lg'></div>
-                    <div className='w-1/4 bg-[#00E396] h-1 mt-2 rounded-lg'></div>
+                    <div className='w-1/4 bg-[#FFD400] h-1 mt-2 rounded-lg'></div>
+                    <div className='w-1/4 bg-[#A0D468] h-1 mt-2 rounded-lg'></div>
+                    <div className='w-1/4 bg-[#008d62] h-1 mt-2 rounded-lg'></div>
+                    <div className='absolute top-0 mt-1' style={{ left: `calc(${dotPosition}% - 6px)` }}>
+                        <div className='bg-white w-3 h-3 rounded-full border-2 border-gray-800'></div>
+                    </div>
                 </div>
 
             </div>
@@ -206,7 +240,7 @@ export const FearGreed = () => {
                 {idxData && <div className='bg-slate-100 mb-2 h-1/3 rounded-xl'>
                     <div className=' test flex flex-row items-center'>
                         <div className='w-1/3'>
-                            <ReactApexChart options={chartOptions2} series={[idxData.yesterdayIdx]} type="radialBar" height="60" />
+                            <ReactApexChart options={{ ...chartOptions2, colors: [yesterdayColor] }} series={[idxData.yesterdayIdx]} type="radialBar" height="60" />
                         </div>
                         <div className='w-2/3 p-3'>
                             <div className='text-xs font-bold'>어제</div>
@@ -221,7 +255,7 @@ export const FearGreed = () => {
                 {idxData && <div className='bg-slate-100 mb-2 h-1/3 rounded-xl'>
                     <div className=' test flex flex-row items-center'>
                         <div className='w-1/3'>
-                            <ReactApexChart options={chartOptions2} series={[idxData.sevenDaysIdx]} type="radialBar" height="60" />
+                            <ReactApexChart options={{ ...chartOptions2, colors: [sevenDaysColor] }} series={[idxData.sevenDaysIdx]} type="radialBar" height="60" />
                         </div>
                         <div className='w-2/3 p-3'>
                             <div className='text-xs font-bold'>7일전</div>
@@ -235,7 +269,7 @@ export const FearGreed = () => {
                 {idxData && <div className='bg-slate-100 mb-2 h-1/3 rounded-xl'>
                     <div className=' test flex flex-row items-center'>
                         <div className='w-1/3'>
-                            <ReactApexChart options={chartOptions2} series={[idxData.oneMonthIdx]} type="radialBar" height="60" />
+                            <ReactApexChart options={{ ...chartOptions2, colors: [oneMonthColor] }} series={[idxData.oneMonthIdx]} type="radialBar" height="60" />
                         </div>
                         <div className='w-2/3 p-3'>
                             <div className='text-xs font-bold'>한달전</div>
