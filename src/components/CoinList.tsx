@@ -251,13 +251,30 @@ const CoinList = () => {
     useEffect(() => {
         if (sortConfig.key) {
             const sortedCoins = [...filteredKrwCoins].sort((a, b) => {
-                if (a[sortConfig.key as keyof typeof a] < b[sortConfig.key as keyof typeof b]) {
-                    return sortConfig.direction === 'ascending' ? -1 : 1;
-                }
-                if (a[sortConfig.key as keyof typeof a] > b[sortConfig.key as keyof typeof b]) {
-                    return sortConfig.direction === 'ascending' ? 1 : -1;
+                const aValue = a[sortConfig.key as keyof typeof a];
+                const bValue = b[sortConfig.key as keyof typeof b];
+
+                //문자열 비교
+                if (typeof aValue === "string" && typeof bValue === "string") {
+                    return sortConfig.direction === 'ascending'
+                        ? aValue.localeCompare(bValue)
+                        : bValue.localeCompare(aValue)
+                } else { //숫자비교
+                    if (aValue < bValue) {
+                        return sortConfig.direction === 'ascending' ? -1 : 1;
+                    }
+                    if (aValue > bValue) {
+                        return sortConfig.direction === 'ascending' ? 1 : -1;
+                    }
                 }
                 return 0;
+                // if (a[sortConfig.key as keyof typeof a] < b[sortConfig.key as keyof typeof b]) {
+                //     return sortConfig.direction === 'ascending' ? -1 : 1;
+                // }
+                // if (a[sortConfig.key as keyof typeof a] > b[sortConfig.key as keyof typeof b]) {
+                //     return sortConfig.direction === 'ascending' ? 1 : -1;
+                // }
+                // return 0;
             });
             setFilteredKrwCoins(sortedCoins);
         }
@@ -312,7 +329,7 @@ const CoinList = () => {
                                 #
                             </th>
                             <th className="py-2  border-b text-left text-xs text-gray-500">
-                                <div className="flex items-center" onClick={() => { handleSort('name') }}>
+                                <div className="flex items-center" onClick={() => { handleSort('shortname') }}>
                                     <div>코인명</div>
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="size-4">
                                         <path fillRule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
@@ -320,7 +337,7 @@ const CoinList = () => {
                                 </div>
                             </th>
                             <th className="py-2 border-b text-left text-xs text-gray-500 ">
-                                <div className="flex items-center" onClick={() => { handleSort('price') }}>
+                                <div className="flex items-center" onClick={() => { handleSort('trade_price') }}>
                                     <div>가격</div>
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="size-4">
                                         <path fillRule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
@@ -330,9 +347,14 @@ const CoinList = () => {
                             <th className="py-2 border-b text-left text-xs text-gray-500">
                                 <div className="flex items-center" onClick={() => { handleSort('signed_change_rate') }}>
                                     <div>등락폭(24h)</div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="size-4">
+                                    {(sortConfig.key === 'signed_change_rate' && sortConfig.direction === 'ascending') ? <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="size-4">
                                         <path fillRule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
                                     </svg>
+                                        :
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="size-4">
+                                            <path fillRule="evenodd" d="M11.78 9.78a.75.75 0 0 1-1.06 0L8 7.06 5.28 9.78a.75.75 0 0 1-1.06-1.06l3.25-3.25a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06Z" clipRule="evenodd" />
+                                        </svg>
+                                    }
                                 </div>
 
                             </th>
@@ -340,9 +362,15 @@ const CoinList = () => {
                             <th className="py-2  border-b text-left text-xs text-gray-500 ">
                                 <div className="flex items-center" onClick={() => { handleSort('acc_trade_price_24h') }}>
                                     <div>거래대금(24h)</div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="size-4">
+                                    {(sortConfig.key === 'acc_trade_price_24h' && sortConfig.direction === 'ascending') ? <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="size-4">
                                         <path fillRule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
                                     </svg>
+                                        :
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="size-4">
+                                            <path fillRule="evenodd" d="M11.78 9.78a.75.75 0 0 1-1.06 0L8 7.06 5.28 9.78a.75.75 0 0 1-1.06-1.06l3.25-3.25a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06Z" clipRule="evenodd" />
+                                        </svg>
+
+                                    }
                                 </div>
 
                             </th>
