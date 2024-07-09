@@ -102,7 +102,7 @@ export const FearGreed = () => {
         try {
             const response = await axios.get('https://api.alternative.me/fng/', {
                 params: {
-                    limit: 31,
+                    limit: 32,
                     format: 'json',
                 }
             })
@@ -113,17 +113,25 @@ export const FearGreed = () => {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const todayTimestamp = Math.floor(today.getTime() / 1000);
+            // const today = dayjs().startOf('day');
+            // const todayTimestamp = today.unix();
+
 
             // 어제, 7일 전, 한달 전 날짜 계산
-            const oneDayAgoTimestamp = todayTimestamp - 86400; // 1일 = 86400초
-            const sevenDaysAgoTimestamp = todayTimestamp - 7 * 86400;
-            const oneMonthAgoTimestamp = todayTimestamp - 30 * 86400; // 약 30일로 계산
+            const oneDayAgoTimestamp = todayTimestamp - 2 * 86400; // 1일 = 86400초
+            const sevenDaysAgoTimestamp = todayTimestamp - 8 * 86400;
+            const oneMonthAgoTimestamp = todayTimestamp - 31 * 86400; // 약 30일로 계산
+            // const oneDayAgoTimestamp = today.subtract(1, 'day').unix();
+            // const sevenDaysAgoTimestamp = today.subtract(7, 'day').unix();
+            // const oneMonthAgoTimestamp = today.subtract(30, 'day').unix();
 
             const filterData = (timestamp: any) => {
                 return allData.find((item: any) => {
                     const itemDate = new Date(item.timestamp * 1000);
                     itemDate.setHours(0, 0, 0, 0);
                     return Math.floor(itemDate.getTime() / 1000) === timestamp;
+                    // const itemDate = dayjs.unix(item.timestamp).startOf('day');
+                    // return itemDate.unix === timestamp;
                 });
             };
 
@@ -132,11 +140,16 @@ export const FearGreed = () => {
             const oneDayAgoData = filterData(oneDayAgoTimestamp);
             const sevenDaysAgoData = filterData(sevenDaysAgoTimestamp);
             const oneMonthAgoData = filterData(oneMonthAgoTimestamp);
+
+            const remainingTime = parseInt(response.data.data[0].time_until_update, 10);
+            //const timeStamp = dayjs.unix(response.data.data[0].timestamp).format('YYYY-MM-DD');
+            const nextUpdateDate = dayjs().add(remainingTime, 'second');
+
             setOneDayAgo(oneDayAgoData.value);
             setSevenDaysAgo(sevenDaysAgoData.value);
             setOneMonthAgo(oneMonthAgoData.value);
 
-            const indexValue = parseInt(response.data.data[0].value, 10)
+            const indexValue = response.data.data[0].value
             console.log("공포탐욕지수는:", indexValue)
             setFearGreedIdx(indexValue);
             return {
@@ -148,29 +161,46 @@ export const FearGreed = () => {
                 yesterdayclassification: oneDayAgoData.value_classification,
                 sevenDaysclassification: sevenDaysAgoData.value_classification,
                 oneMonthclassification: oneMonthAgoData.value_classification,
+                nextUpdateDate: nextUpdateDate.format('YYYY-MM-DD HH:mm:ss'),
             }
         } catch (error) {
             console.error("Error fetching the Fear and Greed Index:", error);
         }
     }
+    /**
+     * 알고리즘
+     * 1. db에 다음 업데이트 예정시간 같이 저장한다
+     * 2. 만약 예정시간보다 현재시간이 뒤라면 새로 api요청, db저장
+     * 3. 현재시간이 앞이라면 db에서 꺼낸거 계속 쓴다.
+     */
     useEffect(() => {
         const fetchAndSaveFearAndGreedIdx = async () => {
             if (!idxData) {
                 console.error("idxData가 비어있거나 정의되지 않았습니다.");
                 return;
             }
-            const latestDate = idxData.date;
-            const lastUpdated = dayjs(latestDate);
             const now = dayjs();
-            if (!latestDate || now.diff(lastUpdated, 'day') >= 1) {
+            const nextUpdate = idxData.nextUpdateDate;
+            //nextUpdate는 항상 현재시간보다 많아야
+            if (!nextUpdate || dayjs(nextUpdate).isBefore(now)) {//nextUpdate < now
+                console.log("리액트쿼리 갱신해야 ㅎㅇㅎㅇ");
                 const result = await fetchFearGreedIdx();
                 const today = dayjs().format('YYYY-MM-DD');
-                //이거 today로 하면 안됨. timestamp 변형해서 해야
                 await axios.post('http://localhost:8080/api/save/feargreedIdx',
                     { ...result, today }
                 );
                 queryClient.invalidateQueries({ queryKey: ['fearandgreedIdx'] })
+
             }
+            // if (!latestDate || now.diff(lastUpdated, 'day') >= 1) {
+            //     const result = await fetchFearGreedIdx();
+            //     const today = dayjs().format('YYYY-MM-DD');
+            //     //이거 today로 하면 안됨. timestamp 변형해서 해야
+            //     await axios.post('http://localhost:8080/api/save/feargreedIdx',
+            //         { ...result, today }
+            //     );
+            //     queryClient.invalidateQueries({ queryKey: ['fearandgreedIdx'] })
+            // }
         }
         fetchAndSaveFearAndGreedIdx();
     }, [queryClient, idxData])
