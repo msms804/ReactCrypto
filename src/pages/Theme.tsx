@@ -6,6 +6,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { setUpbitThemes } from "../store/upbitThemeSlice";
 import { RootState } from "../store/store";
 import useUpbitThemes from "../hooks/useUpbitThemes";
+import { useNavigate } from "react-router-dom";
 
 interface Coin {
     theme: string,
@@ -43,6 +44,7 @@ export const Theme = () => {
     const { data: upbitcoins, error: upbitError, isLoading: upbitLoading } = useUpbitCoins();
     const [mappedThemes, setMappedThemes] = useState<IUpbitThemes[]>([]);
     const reduxThemes = useSelector((state: RootState) => state.theme.mappedThemes);
+    const navigate = useNavigate();
     useUpbitThemes();
 
     // useEffect(() => {
@@ -174,6 +176,9 @@ export const Theme = () => {
         console.log("1등코인 ", sortedCoins[0])
         return sortedCoins[0];
     }
+    const handleCoinClick = (id: string) => {
+        navigate(`/coin/${id}`)
+    }
     if (upbitLoading) return <div>loading...</div>
     if (!reduxThemes) return <div>리덕스로딩</div>
     return (
@@ -186,7 +191,7 @@ export const Theme = () => {
                 <div className="space-y-6 ">
 
 
-                    {reduxThemes.map((item, index) => (<div key={index} className="flex flex-row space-x-4 space-y-5 ">
+                    {reduxThemes.map((item, index) => (<div key={index} className="flex flex-row space-x-4 space-y-5 border-b border-gray-200 p-4">
                         <div className="w-1/4 flex flex-col justify-center">
                             <div className="text-xl font-medium m-2">{item.name}</div>
                             <div className="text-xs text-gray-500 m-2">{item.description}</div>
@@ -203,7 +208,7 @@ export const Theme = () => {
                             </div>
                             <div className="flex flex-row flex-wrap space-x-1">
                                 {item.coins.map((coin, idx) =>
-                                    <div key={idx} className="flex m-1 text-xs text-gray-600 rounded-full border border-gray-400 inline-block px-2 py-1 ">
+                                    <div key={idx} onClick={() => { handleCoinClick(coin.shortname) }} className="flex m-1 text-xs text-gray-600 rounded-full border border-gray-400 inline-block px-2 py-1 ">
                                         <img src={coin.image} className="w-4 h-4 rounded-full" />
                                         <span>{coin.shortname}</span>
                                     </div>)}

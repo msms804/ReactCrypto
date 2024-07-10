@@ -11,6 +11,7 @@ import { RootState } from '../store/store'
 import { Cointable } from "./Cointable";
 import { IUpbitThemes } from '../typings/db';
 import { setWatchlist, addToWatchlist, removeFromWatchlist } from "../store/watchlistSlice";
+import { useNavigate } from "react-router-dom";
 
 
 interface Market {
@@ -73,6 +74,7 @@ const CoinList = () => {
     const dispatch: AppDispatch = useDispatch();
     const watchlist = useSelector((state: RootState) => state.watchlist.items);
     const [sortConfig, setSortConfig] = useState<ISortConfig>({ key: null, direction: null });
+    const navigate = useNavigate();
     useUpbitWebsocket();
 
 
@@ -279,6 +281,9 @@ const CoinList = () => {
             setFilteredKrwCoins(sortedCoins);
         }
     }, [sortConfig, filteredKrwCoins]);
+    const handleCoinClick = (id: string) => {
+        navigate(`/coin/${id}`)
+    }
 
     if (upbitLoading) return <div>upbit loading...</div>
     return (<>
@@ -380,7 +385,7 @@ const CoinList = () => {
                     <tbody>
                         {selectedCurrency === "KRW" ?
                             filteredKrwCoins?.slice(0, 20).map((item, index) => (
-                                <tr key={index}>
+                                <tr key={index} onClick={() => { handleCoinClick(item.shortname) }}>
                                     <td onClick={() => { onClickWatched(item.ticker) }} className="flex justify-center items-center">
                                         {watchlist.includes(item.ticker)
                                             ? <svg xmlns="http://www.w3.org/2000/svg" fill="orange" viewBox="0 0 24 24" strokeWidth="1.5" stroke="orange" className="size-6 w-4 h-4">
