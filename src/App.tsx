@@ -4,6 +4,7 @@ import { Theme } from './pages/Theme';
 import { KimchiPremium } from './pages/KimchiPremium';
 import { Routes, Route } from 'react-router-dom'
 import { Mainpage } from './pages/Mainpage';
+import { CoinChart } from './pages/CoinChart';
 
 //import {Route} from "re"
 //https://startatage30.tistory.com/29
@@ -36,6 +37,7 @@ function App() {
             <Route path='/' element={<Mainpage />} />
             <Route path="theme" element={<Theme />} />
             <Route path="kimchi-premium" element={<KimchiPremium />} />
+            <Route path='/coin/:id' element={<CoinChart />} />
           </Routes>
         </div>
       </div>
