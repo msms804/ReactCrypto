@@ -1,5 +1,5 @@
 import axios from "axios"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import useUpbitCoins from "../queries/upbitcoins";
 import { IUpbitThemes, IUpbitThemeCoins } from "../typings/db";
 import { useSelector, useDispatch } from "react-redux";
@@ -45,6 +45,11 @@ export const Theme = () => {
     const [mappedThemes, setMappedThemes] = useState<IUpbitThemes[]>([]);
     const reduxThemes = useSelector((state: RootState) => state.theme.mappedThemes);
     const navigate = useNavigate();
+    const [isClicked, setIsClicked] = useState(false);
+    const popupRef = useRef<HTMLDivElement | null>(null);
+    const iconRef = useRef<HTMLDivElement | null>(null);
+
+
     useUpbitThemes();
 
     // useEffect(() => {
@@ -179,14 +184,49 @@ export const Theme = () => {
     const handleCoinClick = (id: string) => {
         navigate(`/coin/${id}`)
     }
+    const handleQuestionClick = () => {
+        console.log("왜 안댐", isClicked)
+        setIsClicked((prev) => !prev);
+    }
+    useEffect(() => {
+        // console.log("머임", isClicked)
+        const handleClickOutside = (event: any) => {
+            if (popupRef.current && !popupRef.current.contains(event.target)
+                && iconRef.current && !iconRef.current.contains(event.target)) {
+                setIsClicked(false)
+            }
+        }
+        if (isClicked) {
+            document.addEventListener('mousedown', handleClickOutside);
+        } else {
+            document.removeEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        }
+
+    }, [isClicked])
+
     if (upbitLoading) return <div>loading...</div>
     if (!reduxThemes) return <div>리덕스로딩</div>
     return (
         <div className="flex flex-col min-h-screen">
             <div className="container mx-auto px-16 lg:px-32 py-12">
-                <div className="text-xl font-semibold border-b border-b-slate-200 p-2">
-                    테마
+                <div className="border-b border-b-slate-200 p-2 flex flex-row relative">
+                    <div className="text-xl font-semibold ">테마</div>
+                    <div onClick={handleQuestionClick} ref={iconRef} className="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="gray" className="size-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+                        </svg>
+
+                    </div>
+                    {isClicked &&
+                        <div ref={popupRef} className="absolute top-0 left-20 w-64 h-12 p-2 text-xs text-gray-400 border border-gray-300 bg-white rounded shadow-lg">
+                            테마별 평균 가격은 업비트의 가격을 <br />매일 오전 9시 기준으로 업데이트됩니다
+                        </div>}
                 </div>
+
 
                 <div className="space-y-6 ">
 
