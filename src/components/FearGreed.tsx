@@ -117,7 +117,7 @@ export const FearGreed = () => {
             // const todayTimestamp = today.unix();
 
 
-            // 어제, 7일 전, 한달 전 날짜 계산
+            // 어제, 7일 전, 한달 전 날짜 계산 
             const oneDayAgoTimestamp = todayTimestamp - 2 * 86400; // 1일 = 86400초
             const sevenDaysAgoTimestamp = todayTimestamp - 8 * 86400;
             const oneMonthAgoTimestamp = todayTimestamp - 31 * 86400; // 약 30일로 계산
@@ -252,7 +252,7 @@ export const FearGreed = () => {
                         <div className='text-sm'>{idxData.todayclassification}</div>
                     </div>
                 </div>
-                <div className='text-xs pl-4 pr-4 text-gray-500'>공포탐욕지수는 하루에 한번 갱신됩니다.</div>
+                <div className='text-xs pl-4 pr-4 text-gray-500'>공포탐욕지수는 매일 오전9시에 <br />갱신됩니다.</div>
 
                 <div className='relative flex gap-1 mt-2 pl-4 pr-4'>
                     <div className='w-1/4 bg-[#FF4560] h-1 mt-2 rounded-lg'></div>
