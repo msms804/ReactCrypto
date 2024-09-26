@@ -1,7 +1,6 @@
 import CoinList from '../components/CoinList'
 import { FearGreed } from '../components/FearGreed'
 import { BtcDominance } from '../components/BtcDominance'
-import { Carousel } from '../components/Carousel'
 import { TrendingTheme } from '../components/TrendingTheme'
 import { Link } from 'react-router-dom'
 
@@ -9,9 +8,6 @@ export const Mainpage = () => {
     return (
         <div className='flex flex-col min-h-screen'>
             <div className="container mx-auto px-16 lg:px-32 ">
-                {/* <div className='mt-10'>
-                    <Carousel />
-                </div> */}
                 <div className="flex justify-between mt-10 space-x-4">
                     <div className="trending border border-slate-200 bg-white p-4 rounded-lg flex-1">
                         <h2 className="text-lg font-semibold mb-4">Bitcoin / TetherUS<span className='text-xs font-thin ml-2'>BTCUSDT</span></h2>
