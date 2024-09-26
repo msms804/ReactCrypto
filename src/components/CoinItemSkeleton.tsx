@@ -5,12 +5,12 @@ export const CoinItemSkeleton = () => {
         <tr className='animate-pulse'>
             {/* 와치리스트 아이콘 */}
             <td className='flex justify-center items-center'>
-                <div className='w-4 h-6 bg-gray-200 rounded-md'></div>
+                <div className='w-6 h-6 bg-gray-200 rounded-md'></div>
             </td>
 
             {/* 인덱스 자리 */}
             <td className='py-2 px-4'>
-                <div className='w-5 h-6 bg-gray-200 rounded-md'></div>
+                <div className='w-6 h-6 bg-gray-200 rounded-md'></div>
             </td>
 
             {/* 코인 정보 자리 */}
