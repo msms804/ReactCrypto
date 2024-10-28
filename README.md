@@ -2,8 +2,8 @@
 ## 1. 프로젝트 소개
 ## 2. 기능 영상
 ## 3. 기술 스택
-<img src="https://img.shields.io/badge/Hadoop-66CCFF?style=for-the-badge&logo=react&logoColor=black">
-<img src="https://img.shields.io/badge/Hadoop-66CCFF?style=for-the-badge&logo=reactquery&logoColor=black">
+<img src="https://img.shields.io/badge/react-#61DAFBF?style=for-the-badge&logo=react&logoColor=black">
+<img src="https://img.shields.io/badge/reactquery-#FF4154?style=for-the-badge&logo=reactquery&logoColor=black">
 
 ## 4. 주요 기능
 * 실시간 가격 제공
