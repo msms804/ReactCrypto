@@ -1,6 +1,9 @@
 # 민비트
 ## 1. 프로젝트 소개
+업비트에서 제공하는 코인들의 정보를 테마별로 분류하고 실시간가격 및 다양한 정보들을 보여주는 서비스 
+
 ## 2. 기능 영상
+
 ## 3. 기술 스택
 <img src="https://img.shields.io/badge/react-61DAFB?style=for-the-badge&logo=react&logoColor=black">
 <img src="https://img.shields.io/badge/tailwindcss-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white">
@@ -20,4 +23,10 @@
 * 관심코인 watchlist (로컬스토리지 저장)
 * 다크모드 (로컬스토리지 저장)
 ## 5. 아키텍처
+
 ## 6. 최적화
+* 테이블에서 100개 넘는 코인 렌더링시 속도 느려짐 -> Tanstack/react-virtualized로 렌더링최적화
+  * 렌더링시간 20.5ms에서 11.4ms로 단축
+* throttle 적용하여 리렌더링 최소화, 시스템 과부하 줄임
+* skeleton 적용
+* useCallback, useMemo, React.memo
