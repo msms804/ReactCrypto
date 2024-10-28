@@ -2,8 +2,10 @@
 ## 1. 프로젝트 소개
 ## 2. 기능 영상
 ## 3. 기술 스택
-<img src="https://img.shields.io/badge/react-#61DAFBF?style=for-the-badge&logo=react&logoColor=black">
-<img src="https://img.shields.io/badge/reactquery-#FF4154?style=for-the-badge&logo=reactquery&logoColor=black">
+<img src="https://img.shields.io/badge/react-61DAFB?style=for-the-badge&logo=react&logoColor=black">
+<img src="https://img.shields.io/badge/mongoDB-47A248?style=for-the-badge&logo=MongoDB&logoColor=white">
+<img src="https://img.shields.io/badge/node.js-339933?style=for-the-badge&logo=Node.js&logoColor=white">
+<img src="https://img.shields.io/badge/express-000000?style=for-the-badge&logo=express&logoColor=white">
 
 ## 4. 주요 기능
 * 실시간 가격 제공
