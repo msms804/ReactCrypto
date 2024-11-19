@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { createChart } from 'lightweight-charts'
 
-export const CoinChart = ({ props }: any) => {
+export const CoinChart = () => {
     const chartContainerRef = useRef<HTMLDivElement | null>(null);
     useEffect(() => {
         const container = chartContainerRef.current;

@@ -1,37 +1,17 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { v4 as uuidv4 } from 'uuid';
-import { SevenDays } from "./SevenDays";
 import useUpbitCoins from "../queries/upbitcoins";
-import { Search } from "./Search";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, setUpbit, updateUpbitPrice } from "../store/store";
+import { AppDispatch } from "../store/store";
 import useUpbitWebsocket from "../hooks/useUpbitWebsocket";
 import { RootState } from '../store/store'
-import { Cointable } from "./Cointable";
+
 import { IUpbitThemes } from '../typings/db';
 import { setWatchlist, addToWatchlist, removeFromWatchlist } from "../store/watchlistSlice";
-import { useNavigate } from "react-router-dom";
+import { CoinItem } from "./CoinItem";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 
-interface Market {
-    market: string;
-    korean_name: string;
-    english_name: string;
-    price: number;
-}
-interface ticker {
-    market: string;
-    korean_name: string;
-    english_name: string;
-    price: number;
-    change: string;
-    signed_change_price: number;
-    signed_change_rate: number;
-    acc_trade_price_24h: number;
-    trade_price: number;
-    image: string,
-}
 interface upbit {
     koreanname: string,
     englishname: string,
@@ -49,32 +29,34 @@ interface ISortConfig {
     key: string | null;
     direction: 'ascending' | 'descending' | null;
 }
+
 const CoinList = () => {
-    const [symbols, setSymbols] = useState<Market[]>([]);   //모든티커
-    const [krwCoins, setKrwCoins] = useState<ticker[]>([]);//KRW- 로시작하는 코인
-    const [usdtCoins, setUsdtCoins] = useState<ticker[]>([]);//USDT- 로시작하는 코인
-    const [coins, setCoins] = useState<Market[]>([]);
-    const [updatedCoins, setUpdatedCoins] = useState<ticker[]>([]);
+    //const [symbols, setSymbols] = useState<Market[]>([]);   //모든티커
+    //const [krwCoins, setKrwCoins] = useState<ticker[]>([]);//KRW- 로시작하는 코인
+    //const [usdtCoins, setUsdtCoins] = useState<ticker[]>([]);//USDT- 로시작하는 코인
+    //const [coins, setCoins] = useState<Market[]>([]);
+    //const [updatedCoins, setUpdatedCoins] = useState<ticker[]>([]);
     const [selectedCurrency, setSelectedCurrency] = useState("KRW");
-    const { data: upbitcoins, error: upbitError, isLoading: upbitLoading } = useUpbitCoins();
-    const [updatedUpbitCoins, setUpdatedUpbitCoins] = useState<upbit[]>([]);
-    const [usdtUpbitCoins, setUsdtUpbitCoins] = useState<upbit[]>([])//updatedUpbitCoins중 usdt만 필터링한것
-    const [krwUpbitCoins, setKrwUpbitCoins] = useState<upbit[]>([])//updatedUpbitCoins중 krw만 필터링한것
+    //const { data: upbitcoins, error: upbitError, isLoading: upbitLoading } = useUpbitCoins();
+    const { isLoading: upbitLoading } = useUpbitCoins();
+    //const [updatedUpbitCoins, setUpdatedUpbitCoins] = useState<upbit[]>([]);
+    // const [usdtUpbitCoins, setUsdtUpbitCoins] = useState<upbit[]>([])//updatedUpbitCoins중 usdt만 필터링한것
+    // const [krwUpbitCoins, setKrwUpbitCoins] = useState<upbit[]>([])//updatedUpbitCoins중 krw만 필터링한것
     //const dispatch = useDispatch();
     const reduxUpbitCoins = useSelector((state: RootState) => state.upbit.coins)
     const [reduxKrwCoins, setReduxKrwCoins] = useState<upbit[]>([]);
-    const [reduxUsdtCoins, setReduxUsdtCoins] = useState<upbit[]>([])
+    //const [reduxUsdtCoins, setReduxUsdtCoins] = useState<upbit[]>([])
     const [themes, setThemes] = useState<IUpbitThemes[]>();
     const [selectedTheme, setSelectedTheme] = useState<IUpbitThemes>({ theme: "ALL", name: "모든코인", description: "", coins: [] });
     const [selectedThemeCoins, setSelectedThemeCoins] = useState<string[]>();
     const [inputValue, setInputValue] = useState('');
     const [filteredKrwCoins, setFilteredKrwCoins] = useState<upbit[]>([]);
     const [searchedCoins, setSearchedCoins] = useState<upbit[]>([]);
-    const [watchList, setWatchList] = useState<string[]>([]);
+    const [watchList] = useState<string[]>([]);
     const dispatch: AppDispatch = useDispatch();
     const watchlist = useSelector((state: RootState) => state.watchlist.items);
     const [sortConfig, setSortConfig] = useState<ISortConfig>({ key: null, direction: null });
-    const navigate = useNavigate();
+    //const navigate = useNavigate();
     useUpbitWebsocket();
 
 
@@ -87,7 +69,7 @@ const CoinList = () => {
         reduxUSDT.sort((a, b) => b.acc_trade_price_24h - a.acc_trade_price_24h)
         //console.log("리덕스 krw", reduxUSDT.length)
         setReduxKrwCoins(reduxKRW);
-        setReduxUsdtCoins(reduxUSDT);
+        //setReduxUsdtCoins(reduxUSDT);
     }, [reduxUpbitCoins])
 
 
@@ -106,12 +88,7 @@ const CoinList = () => {
         }
     }, [inputValue, reduxKrwCoins])
 
-    /**
- * 1. 만약 rwa 눌렀음
- * 2. rwa에 들어있는 coins의 배열들 과
- * 3. reduxKrwCoins에 있는 coins들을 비교해야
- * 4. 그리고 filter
- */
+
 
     useEffect(() => {
         const fetchUpbitThemes = async () => {
@@ -194,42 +171,27 @@ const CoinList = () => {
         console.log("와치리스트 state", watchList)
     }, [watchList])
 
-    const saveInDB = async (e: any) => {
-        e.preventDefault();
-        const imsi = updatedUpbitCoins.map((item) => ({
-            ticker: item.ticker,
-            shortname: item.shortname,
-            cryptoExchange: item.cryptoExchange,
-            englishname: item.englishname,
-            koreanname: item.koreanname,
-            theme: "",
-            image: item.image || "",
-        }))
-        console.log("imsi", imsi);
-        try {
-            const response = await axios.post('http://localhost:8080/api/save/coin', imsi)
-            console.log("코인저장성공", response.data)
-        } catch (error) {
-            console.error("코인저장실패", error);
-        }
-        // const promises = krwCoins.map((item) => {
-        //     console.log(item.market, item.english_name, item.korean_name)
-        //     axios.post('http://localhost:8080/api/save/coin', {
-        //         ticker: item.market,
-        //         shortname: item.market.split('-')[1],
-        //         cryptoExchange: "upbit",
-        //         englishname: item.english_name,
-        //         koreanname: item.korean_name,
-        //         theme: " ",
-        //     })
-        // })
-        // try {
-        //     const responses = await Promise.all(promises);
-        //     console.log("프로미스테스트", responses);
-        // } catch (error) {
-        //     console.log("코인저장실패", error);
-        // }
-    }
+    //코인저장함수
+    // const saveInDB = async (e: any) => {
+    //     e.preventDefault();
+    //     const imsi = updatedUpbitCoins.map((item) => ({
+    //         ticker: item.ticker,
+    //         shortname: item.shortname,
+    //         cryptoExchange: item.cryptoExchange,
+    //         englishname: item.englishname,
+    //         koreanname: item.koreanname,
+    //         theme: "",
+    //         image: item.image || "",
+    //     }))
+    //     console.log("imsi", imsi);
+    //     try {
+    //         const response = await axios.post('http://localhost:8080/api/save/coin', imsi)
+    //         console.log("코인저장성공", response.data)
+    //     } catch (error) {
+    //         console.error("코인저장실패", error);
+    //     }
+
+    // }
     const handleSort = (key: string) => {
         let direction: 'ascending' | 'descending' = 'ascending';
         //만약 이미 ascending인 경우 --> descending
@@ -281,16 +243,21 @@ const CoinList = () => {
             setFilteredKrwCoins(sortedCoins);
         }
     }, [sortConfig, filteredKrwCoins]);
-    const handleCoinClick = (id: string) => {
-        navigate(`/coin/${id}`)
-    }
+
+
+    const parentRef = React.useRef<HTMLDivElement>(null)
+    const virtualizer = useVirtualizer({
+        count: filteredKrwCoins.length,
+        getScrollElement: () => parentRef.current,
+        estimateSize: () => 52, //각 row의 높이
+        overscan: 20,   //스크롤할 때 추가로 로드할 아이템 수
+    })
 
     if (upbitLoading) return <div>upbit loading...</div>
     return (<>
         <div className="container mx-auto mt-8">
-
             <div className="flex flex-row justify-between">
-                <div className="flex flex-row space-x-2 m-4">{/**왜 이렇게 밑에 넣어야함;;; */}
+                <div className="flex flex-row space-x-2 m-4">
                     <div className=" flex flex-row space-x-2">
                         <div className={`border rounded-full px-2 py-1 text-xs ${selectedCurrency === "KRW" ? 'text-[#30d5c8] border-[#30d5c8]-400' : "text-gray-400 border-gray-400"}`}
                             onClick={() => { setSelectedCurrency("KRW") }}>원화</div>
@@ -325,12 +292,14 @@ const CoinList = () => {
                 </div>                {/* <button onClick={saveInDB}>코인 디비에저장</button> */}
 
             </div>
-            <div className="overflow-y-auto h-[32rem]">
-                <table className="min-w-full bg-white">
+            {/* <Cointable data={filteredKrwCoins} /> */}
+
+            <div ref={parentRef} className="relative overflow-y-auto h-[32rem]">
+                <table className="min-w-full bg-white table-fixed">
                     <thead >
                         <tr>
                             <th className="py-2  border-b text-left rounded-tl-lg"></th>
-                            <th className="py-2  border-b text-left text-xs text-gray-500">
+                            <th className="py-2 px-4 border-b text-left text-xs text-gray-500">
                                 #
                             </th>
                             <th className="py-2  border-b text-left text-xs text-gray-500">
@@ -377,41 +346,42 @@ const CoinList = () => {
 
                                     }
                                 </div>
-
                             </th>
                             <th className="py-2  border-b text-left rounded-tr-lg text-xs text-gray-500">가격(30Days)</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="relative">
+                        {virtualizer.getVirtualItems().map((virtualRow, index) => {
+                            const item = filteredKrwCoins[virtualRow.index];//가상화된 행에 맞는 데이터 가져옴
+
+                            return (
+                                <CoinItem
+                                    key={item.ticker}
+                                    onClickWatched={() => onClickWatched(item.ticker)}
+                                    item={item}
+                                    index={virtualRow.index}
+                                    watchlist={watchlist}
+                                    style={{
+                                        height: `${virtualRow.size}px`,
+                                        transform: `translateY(${virtualRow.start - index * virtualRow.size}px)`,
+                                        // transform: `translateY(${virtualRow.start}px)`,
+                                    }}
+                                />
+                            )
+                        })}
+                    </tbody>
+                    {/* <tbody>
                         {selectedCurrency === "KRW" ?
-                            filteredKrwCoins?.slice(0, 20).map((item, index) => (
-                                <tr key={index} onClick={() => { handleCoinClick(item.shortname) }}>
-                                    <td onClick={() => { onClickWatched(item.ticker) }} className="flex justify-center items-center">
-                                        {watchlist.includes(item.ticker)
-                                            ? <svg xmlns="http://www.w3.org/2000/svg" fill="orange" viewBox="0 0 24 24" strokeWidth="1.5" stroke="orange" className="size-6 w-4 h-4">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-                                            </svg>
-                                            : <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="gray" className="size-6 w-4 h-4">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-                                            </svg>
-                                        }
-                                    </td>
-                                    <td className="py-2 px-4 text-sm text-left">{index + 1}</td>
-                                    <td className="flex flex-row items-center space-x-2">
-                                        <span><img src={item.image} className="w-7 h-7 rounded-full" /></span>
-                                        <span className="font-medium">{item.shortname}</span>
-                                        <span className="text-xs text-gray-500 ml-2">{item.koreanname}</span>
+                            filteredKrwCoins?.map((item, index) => (
+                                <CoinItem
+                                    onClickWatched={() => onClickWatched(item.ticker)}
+                                    item={item}
+                                    index={index}
+                                    watchlist={watchlist}
+                                />
+                            ))
 
-                                    </td>
-                                    <td className={`${item.change === "RISE" ? "text-red-500" : "text-blue-600"} font-light`}>{item.trade_price?.toLocaleString('ko-KR')}</td>
-                                    <td className={`${item.change === "RISE" ? "text-red-500" : "text-blue-600"} font-light`}>{(item.signed_change_rate * 100).toFixed(2)}%</td>
-                                    <td className="font-light"> {item.acc_trade_price_24h?.toLocaleString('ko-KR')}</td>
-                                    <td className="text-right"><SevenDays ticker={item.ticker} change={item.change} /></td>
-
-
-                                </tr>
-                            )) :
-                            reduxUsdtCoins.slice(0, 20).map((item, index) => (
+                            : reduxUsdtCoins.slice(0, 20).map((item, index) => (
                                 <tr key={index}>
                                     <td onClick={() => { onClickWatched(item.ticker) }}>
                                         {watchlist.includes(item.ticker)
@@ -438,7 +408,7 @@ const CoinList = () => {
                             ))
                         }
 
-                    </tbody>
+                    </tbody> */}
                 </table>
 
             </div>
