@@ -5,7 +5,7 @@ import './index.css'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import store from './store/store.ts'
+import { store } from './store/store.ts'
 import { Provider } from 'react-redux'
 
 const queryClient = new QueryClient();
