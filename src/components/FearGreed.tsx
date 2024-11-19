@@ -1,20 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import axios from 'axios'
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import dayjs from 'dayjs';
 import useFearGreedIdx from '../queries/fearAndGreedIdx';
 import { useQueryClient } from '@tanstack/react-query';
-import { IFearGreedIdx } from '../typings/db';
 
 //https://alternative.me/crypto/fear-and-greed-index/
 
 export const FearGreed = () => {
-    const [fearGreedIdx, setFearGreedIdx] = useState<number | null>(null);
-    const [oneDayAgo, setOneDayAgo] = useState<number | null>(null);
-    const [sevenDaysAgo, setSevenDaysAgo] = useState<number | null>(null);
-    const [oneMonthAgo, setOneMonthAgo] = useState<number | null>(null);
-    const { data: idxData, error: idxError, isLoading: idxLoading } = useFearGreedIdx();
+    // const [fearGreedIdx, setFearGreedIdx] = useState<number | null>(null);
+    // const [oneDayAgo, setOneDayAgo] = useState<number | null>(null);
+    // const [sevenDaysAgo, setSevenDaysAgo] = useState<number | null>(null);
+    // const [oneMonthAgo, setOneMonthAgo] = useState<number | null>(null);
+    const { data: idxData, isLoading: idxLoading } = useFearGreedIdx();
     const queryClient = useQueryClient();
 
     const chartOptions: ApexOptions = {
@@ -95,7 +94,7 @@ export const FearGreed = () => {
         labels: ['Index'],
         colors: ['#00E396', '#FEB019', '#FF4560']
     };
-    const chartSeries = fearGreedIdx !== null ? [fearGreedIdx] : [];
+    //const chartSeries = fearGreedIdx !== null ? [fearGreedIdx] : [];
 
 
     const fetchFearGreedIdx = async () => {
@@ -145,13 +144,12 @@ export const FearGreed = () => {
             //const timeStamp = dayjs.unix(response.data.data[0].timestamp).format('YYYY-MM-DD');
             const nextUpdateDate = dayjs().add(remainingTime, 'second');
 
-            setOneDayAgo(oneDayAgoData.value);
-            setSevenDaysAgo(sevenDaysAgoData.value);
-            setOneMonthAgo(oneMonthAgoData.value);
+            //setOneDayAgo(oneDayAgoData.value);
+            //setSevenDaysAgo(sevenDaysAgoData.value);
+            //setOneMonthAgo(oneMonthAgoData.value);
 
             const indexValue = response.data.data[0].value
-            console.log("공포탐욕지수는:", indexValue)
-            setFearGreedIdx(indexValue);
+            //setFearGreedIdx(indexValue);
             return {
                 todayIdx: indexValue,
                 yesterdayIdx: oneDayAgoData.value,

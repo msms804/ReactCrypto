@@ -30,8 +30,8 @@ export const Slide: React.FC<CarouselProps> = ({ markets }) => {
                         <path fillRule="evenodd" d="M9.78 4.22a.75.75 0 0 1 0 1.06L7.06 8l2.72 2.72a.75.75 0 1 1-1.06 1.06L5.47 8.53a.75.75 0 0 1 0-1.06l3.25-3.25a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
                     </svg>
                 </button>}
-            {markets.slice(startIdx, endIdx + 1).map((item) => (
-                <div className='w-1/5 border border-slate-200 rounded-lg h-50 p-6 mr-2'>
+            {markets.slice(startIdx, endIdx + 1).map((item, i) => (
+                <div key={i} className='w-1/5 border border-slate-200 rounded-lg h-50 p-6 mr-2'>
                     <div className='text-xs'>{item}</div>
                     <div className='font-medium'>17,173.12</div>
                     <div className='text-red-500 text-xs'>-0.08%</div>

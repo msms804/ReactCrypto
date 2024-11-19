@@ -1,20 +1,13 @@
-import { useEffect, useState, memo, useRef } from 'react'
+import { useEffect, useState, memo } from 'react'
 import axios from 'axios';
-import { createChart, ColorType } from 'lightweight-charts';
+//import { createChart, ColorType } from 'lightweight-charts';
 import { ApexOptions } from 'apexcharts';
 import ReactApexChart from 'react-apexcharts';
 
-interface Candle {
-  market: string;
-  data: {
-    candle_date_time_utc: string;
-    opening_price: number;
-    trade_price: number;
-    candle_acc_trade_price: number;
-  }[];
-}
+
 interface SevenDaysProps {
   ticker: string;
+  change: string;
 }
 /**
  * 
@@ -26,14 +19,18 @@ interface SevenDaysProps {
  * 
  * 왜 차트 계속 렌더링됨? 막아야함
  */
-export const SevenDays = memo(({ ticker }: SevenDaysProps) => {
-  const [candles, setCandles] = useState<Candle[]>([]);
+export const SevenDays = memo(({ ticker, change }: SevenDaysProps) => {
+  // const [candles, setCandles] = useState<Candle[]>([]);
   const [tradePrice, setTradePrice] = useState([]);
-  const chartContainerRef = useRef<HTMLDivElement | null>(null);
-
+  //const chartContainerRef = useRef<HTMLDivElement | null>(null);
+  const [colors, setColors] = useState<string>("");
+  //const [chartOptions, setChartOptions] = useState<ApexOptions>()
   useEffect(() => {
     console.log("props로 받은 ticker:", ticker);
+    console.log("props로 받은 change", change);
 
+    const newColor = (change === "RISE") ? "#F44336" : "#F44336"
+    setColors(newColor)
 
     const fetchCandles = async () => {
       try {
@@ -41,7 +38,7 @@ export const SevenDays = memo(({ ticker }: SevenDaysProps) => {
           params: {
             market: ticker,
             to: new Date().toISOString().replace('.000Z', '+00:00'),  // KST 형식으로 변환
-            count: 7,
+            count: 30,
             convertingPriceUnit: "KRW",
           }
         });
@@ -57,12 +54,12 @@ export const SevenDays = memo(({ ticker }: SevenDaysProps) => {
     }
     fetchCandles();
 
-  }, [ticker])
+  }, [ticker, change])
 
   //차트렌더링 
   //참고 : https://tradingview.github.io/lightweight-charts/tutorials/react/simple 
   // https://apexcharts.com/docs/react-charts/
-  const chartOptions: ApexOptions = {
+  const chartOptions2: ApexOptions = {
     chart: {
       type: 'line',
       offsetY: 0,
@@ -103,8 +100,10 @@ export const SevenDays = memo(({ ticker }: SevenDaysProps) => {
     },
     stroke: {
       curve: 'smooth',
-      width: 2, // 라인의 굵기를 1로 설정합니다.
+      width: 1, // 라인의 굵기를 1로 설정합니다.
     },
+    colors: [colors]
+
 
   }
 
@@ -112,12 +111,12 @@ export const SevenDays = memo(({ ticker }: SevenDaysProps) => {
 
   return (
     <div >
-      <ReactApexChart options={chartOptions} series={[
+      <ReactApexChart options={chartOptions2} series={[
         {
           name: "series-1",
           data: tradePrice,
         }
-      ]} type='line' height="70" width="200" />
+      ]} type='line' height="50" width="150" />
     </div>
   )
 })
