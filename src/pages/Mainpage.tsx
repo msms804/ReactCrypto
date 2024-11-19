@@ -10,7 +10,8 @@ export const Mainpage = () => {
             <div className="container mx-auto px-16 lg:px-32 ">
                 <div className="flex justify-between mt-10 space-x-4">
                     <div className="trending border border-slate-200 bg-white p-4 rounded-lg flex-1">
-                        <h2 className="text-lg font-semibold mb-4">Bitcoin / TetherUS<span className='text-xs font-thin ml-2'>BTCUSDT</span></h2>
+                        <h2 className="text-lg font-semibold mb-4">
+                            Bitcoin / TetherUS<span className='text-xs font-thin ml-2'>BTCUSDT</span></h2>
                         {/* Content for trending */}
                         <BtcDominance />
                     </div>
@@ -47,7 +48,7 @@ export const Mainpage = () => {
                     </div>
                 </div>
                 <div>
-                    <h2 className='my-4'>코인리스트</h2>
+                    {/* <h2 className='my-4'>코인리스트</h2> */}
                     <CoinList />
                 </div>
             </div>

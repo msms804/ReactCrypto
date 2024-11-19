@@ -1,7 +1,7 @@
 import { configureStore, createSlice } from '@reduxjs/toolkit'
-import counterReducer, { counterSlice } from './upbitSlice'
 import upbitThemeReducer from './upbitThemeSlice'
 import watchlistReducer from './watchlistSlice'
+//import counterReducer, { counterSlice } from './upbitSlice'
 
 interface UpbitCoin {
     koreanname: string,
