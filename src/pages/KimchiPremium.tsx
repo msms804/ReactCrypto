@@ -26,10 +26,10 @@ interface kimchi {
 
 const saveRateInDB = async (rate: any) => {//디비에 저장하는 로직
     console.log(rate);
-    await axios.post('http://localhost:8080/api/save/rates', { baseprice: rate.baseprice, date: rate.date })
+    await axios.post('https://reactcrypto-server-production.up.railway.app/api/save/rates', { baseprice: rate.baseprice, date: rate.date })
 }
 const fetchRateFromDB = async () => {//디비에서 가져오는 로직
-    const result = await axios.get('http://localhost:8080/api/rates');
+    const result = await axios.get('https://reactcrypto-server-production.up.railway.app/api/rates');
     console.log("디비에서 꺼낸 환율", result.data);
     return result.data;
 }

@@ -184,7 +184,7 @@ export const FearGreed = () => {
                 console.log("리액트쿼리 갱신해야 ㅎㅇㅎㅇ");
                 const result = await fetchFearGreedIdx();
                 const today = dayjs().format('YYYY-MM-DD');
-                await axios.post('http://localhost:8080/api/save/feargreedIdx',
+                await axios.post('https://reactcrypto-server-production.up.railway.app/api/save/feargreedIdx',
                     { ...result, today }
                 );
                 queryClient.invalidateQueries({ queryKey: ['fearandgreedIdx'] })

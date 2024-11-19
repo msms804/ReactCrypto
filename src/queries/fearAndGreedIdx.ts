@@ -5,7 +5,7 @@ const useFearGreedIdx = () => {
     const { data, error, isLoading } = useQuery({
         queryKey: ["fearandgreedIdx"],
         queryFn: async () => {
-            const response = await axios.get('http://localhost:8080/api/fearAndGreedIdx')
+            const response = await axios.get('https://reactcrypto-server-production.up.railway.app/api/fearAndGreedIdx')
             return response.data;
         }
     })

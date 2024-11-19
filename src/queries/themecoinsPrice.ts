@@ -5,7 +5,7 @@ const useThemeCoinsPrice = () => {
     const { data, error, isLoading } = useQuery({
         queryKey: ['coinsPrice'],
         queryFn: async () => {
-            const response = await axios.get('http://localhost:8080/api/theme/coins')
+            const response = await axios.get('https://reactcrypto-server-production.up.railway.app/api/theme/coins')
             return response.data;
         }
     })

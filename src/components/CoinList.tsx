@@ -93,7 +93,7 @@ const CoinList = () => {
     useEffect(() => {
         const fetchUpbitThemes = async () => {
             try {
-                const result = await axios.get('http://localhost:8080/api/theme')
+                const result = await axios.get('https://reactcrypto-server-production.up.railway.app/api/theme')
                 console.log("테마리스트", result.data);
                 setThemes(result.data);
             } catch (error) {

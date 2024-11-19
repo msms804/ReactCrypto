@@ -77,7 +77,7 @@ export const Theme = () => {
 
     }, [isClicked])
     const imsiSaveCoin = async () => {
-        const result = await axios.get('http://localhost:8080/api/theme')
+        const result = await axios.get('https://reactcrypto-server-production.up.railway.app/api/theme')
 
         console.log('디비저장', result.data);
     }
