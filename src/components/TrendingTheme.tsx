@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import useUpbitThemes from '../hooks/useUpbitThemes'
 import { useSelector } from 'react-redux'
 import { RootState } from '../store/store'
@@ -25,17 +25,17 @@ export const TrendingTheme = () => {
     useUpbitThemes();
 
     useEffect(() => {
-        console.log("킁킁", mappedThemes)
+        console.log("", mappedThemes)
 
         const mappedUpbitThemes: UpbitThemes[] = mappedThemes.map((item: any) => {
             const avgChangeRate = calculateAvgChangeRate(item.coins);
-            console.log("킁킁킁", calculateAvgChangeRate(item.coins));
+            console.log("", calculateAvgChangeRate(item.coins));
             return {
                 ...item,
                 avg_change_rate: avgChangeRate,
             }
         }).sort((a, b) => b.avg_change_rate - a.avg_change_rate);
-        console.log("머여", mappedUpbitThemes);
+        console.log("", mappedUpbitThemes);
         setUpbitTheme(mappedUpbitThemes.slice(0, 3));
     }, [mappedThemes])
 
@@ -49,7 +49,6 @@ export const TrendingTheme = () => {
         return (sum * 100) / coins.length;
     }
 
-    // useEffect(() => { console.log("머임 ㅡㅡ", upbitTheme) }, [upbitTheme])
 
     return (
         <div className='h-full flex flex-col  space-y-2'>
@@ -67,7 +66,7 @@ export const TrendingTheme = () => {
                             <div className='flex -space-x-3 overflow-hidden w-20'>
                                 {
                                     item.coins.slice(0, 3).map((coin, idx) =>
-                                        <img className="w-7 h-7 rounded-full inline-block ring-1 ring-blue-200 bg-white" src={coin.image} />
+                                        <img key={idx} className="w-7 h-7 rounded-full inline-block ring-1 ring-blue-200 bg-white" src={coin.image} />
                                     )
                                 }
                             </div>
