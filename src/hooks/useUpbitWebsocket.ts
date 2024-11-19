@@ -1,13 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
-import { IUpbit } from '../typings/db';
 import useUpbitCoins from "../queries/upbitcoins";
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { setUpbit, updateUpbitPrice } from '../store/store';
 
 const useUpbitWebsocket = () => {
-    //굳이 이걸 파라미터로 받아야하나?
-    const { data: upbitcoins, error: upbitError, isLoading: upbitLoading } = useUpbitCoins();
+    //const { data: upbitcoins, error: upbitError, isLoading: upbitLoading } = useUpbitCoins();
+    const { data: upbitcoins } = useUpbitCoins();
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -34,9 +33,6 @@ const useUpbitWebsocket = () => {
                     const decoder = new TextDecoder("utf-8");
                     const text = decoder.decode(buffer);
                     const receivedData = JSON.parse(text);
-                    //console.log("훅으로 받는 업비트데이터", receivedData);
-
-                    //이제 여기서 실시간 가격 업데이트해야
 
                     dispatch(updateUpbitPrice({
                         upbitticker: receivedData.code,

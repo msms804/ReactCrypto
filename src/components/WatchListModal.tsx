@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { RootState } from '../store/store';
 import { useSelector } from 'react-redux';
-import useUpbitWebsocket from '../hooks/useUpbitWebsocket';
+//import useUpbitWebsocket from '../hooks/useUpbitWebsocket';
 import { IUpbit } from '../typings/db';
 
 export const WatchListModal = () => {
     const [isHovered, setIsHovered] = useState(false);
-    const [watchList, setWatchList] = useState<string[]>([]);
+    //const [watchList, setWatchList] = useState<string[]>([]);
     const watchlist = useSelector((state: RootState) => state.watchlist.items)
     const reduxUpbitCoins = useSelector((state: RootState) => state.upbit.coins)
     const [upbitWatched, setUpbitWatched] = useState<IUpbit[]>([]);
@@ -23,9 +23,9 @@ export const WatchListModal = () => {
             setUpbitWatched(newWatched);
         }
     }, [watchlist, reduxUpbitCoins])
-    useEffect(() => {
-        console.log(",,", upbitWatched)
-    }, [upbitWatched])
+    // useEffect(() => {
+    //     // console.log(",,", upbitWatched)
+    // }, [upbitWatched])
     const handleMouseEnter = () => {
         setIsHovered(true);
     }
@@ -40,7 +40,7 @@ export const WatchListModal = () => {
         if (watched !== null) {
             console.log("모달창에서 가져옴", watched);
             console.log("모달창에서 가져옴2", JSON.parse(watched));
-            setWatchList(JSON.parse(watched))
+            //setWatchList(JSON.parse(watched))
         }
 
     }
@@ -59,7 +59,7 @@ export const WatchListModal = () => {
             window.removeEventListener('storage', handleStorageChange);
         }
     }, [])
-
+    //스크롤바 라이브러리: https://ehddud100677.tistory.com/369
     return (
         <div className='relative'>
             <button
@@ -70,7 +70,7 @@ export const WatchListModal = () => {
             {
                 isHovered
                 && <div
-                    className='absolute top-10 left-1/2 transform -translate-x-1/2 w-80 h-96 overflow-x-auto rounded-lg bg-white border-gray shadow-lg rounded p-4'
+                    className='absolute top-10 left-1/2 transform -translate-x-1/2 w-80 h-96 overflow-x-auto rounded-lg bg-white border-gray shadow-lg p-4'
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}>
                     <h2 className='text-lg font-semibold mb-4'>관심종목</h2>

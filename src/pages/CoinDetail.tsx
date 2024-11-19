@@ -1,6 +1,5 @@
-import React from 'react'
 import { useParams } from 'react-router-dom'
-import { CoinChart } from '../components/CoinChart';
+// import { CoinChart } from '../components/CoinChart';
 /**
  * 
  * 1. 클릭하면 해당 라우트로 넘어가게?, 
@@ -15,7 +14,7 @@ export const CoinDetail = () => {
                 <div className='text-xl '>비트코인 {id}</div>
                 <div className='text-3xl font-medium'>82,645,000원</div>
                 <div className='text-xs text-gray-500 font-semibold'>전일대비 0.74%</div>
-                <div className='w-full h-96' ><CoinChart shortname={id} /></div>
+                <div className='w-full h-96' ></div>
             </div>
         </div>
     )

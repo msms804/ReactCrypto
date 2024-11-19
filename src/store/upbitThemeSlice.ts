@@ -1,4 +1,4 @@
-import { IUpbitThemes, IUpbitThemeCoins } from '../typings/db'
+import { IUpbitThemes } from '../typings/db'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 interface ThemeState {

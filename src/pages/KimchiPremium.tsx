@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-import { v4 as uuidv4 } from 'uuid';
 import useUpbitCoins from "../queries/upbitcoins";
 import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
@@ -8,29 +7,8 @@ import axios from "axios";
 import dayjs from "dayjs";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-interface upbit {
-    koreanname: string,
-    englishname: string,
-    theme: string,
-    ticker: string,
-    shortname: string,
-    image: string,
-    cryptoExchange: string,
-    trade_price: number,//가격
-    acc_trade_price_24h: number,//거래대금
-    signed_change_rate: number, //등락폭
-    change: string,
-}
-interface upbitBinance {
-    koreanname: string,
-    englishname: string,
-    theme: string,
-    ticker: string,
-    shortname: string,
-    image: string,
-    cryptoExchange: string,
-    trade_price: string,
-}
+
+
 interface kimchi {
     koreanname: string,
     englishname: string,
@@ -47,7 +25,7 @@ interface kimchi {
 }
 
 const saveRateInDB = async (rate: any) => {//디비에 저장하는 로직
-    console.log("머리아파ㅡㅡ", rate);
+    console.log(rate);
     await axios.post('http://localhost:8080/api/save/rates', { baseprice: rate.baseprice, date: rate.date })
 }
 const fetchRateFromDB = async () => {//디비에서 가져오는 로직
@@ -56,9 +34,8 @@ const fetchRateFromDB = async () => {//디비에서 가져오는 로직
     return result.data;
 }
 
-//https://binance-docs.github.io/apidocs/websocket_api/en/#general-api-information
 export const KimchiPremium = () => {
-    const [coinExchange, setCoinExchange] = useState([{
+    const [coinExchange] = useState([{
         koreanname: "업비트",
         englishname: "upbit",
         image: "https://asset.coinness.com/exchange/logo/7dcea0013b4ec6942b703c52967c159b.png?f=webp&w=64&h=64"
@@ -69,31 +46,40 @@ export const KimchiPremium = () => {
         image: "https://asset.coinness.com/exchange-logo/6e6958559dd757d470dffe37cabe44a9.png?f=webp&w=64&h=64"
     }])
     const [open, setOpen] = useState(false);
-    const [btcPrice, setBtcPrice] = useState(null);
-    const { data: upbitcoins, error: upbitError, isLoading: upbitLoading } = useUpbitCoins();
+    const { data: upbitcoins, isLoading: upbitLoading } = useUpbitCoins();
     const [upbitshortname, setUpbitShortName] = useState([]);//바이낸스에 보낼 티커 배열
-    const [upbitBinance, setUpbitBinance] = useState<upbitBinance[]>([])
+    //const [upbitBinance, setUpbitBinance] = useState<upbitBinance[]>([])
     //업비트 바이낸스 가격차 퍼센트 다 떼려넣을 변수, 이거 렌더링할거임
     const [kimchi, setKimchi] = useState<kimchi[]>([]);
     const reduxItems = useSelector((state: RootState) => state.upbit.coins)
-    const [exchangeRate, setExchangeRate] = useState();
-
+    const [exchangeRate] = useState();
     const queryClient = useQueryClient();
     const [rate, setRate] = useState();
-    const { data, error, isLoading } = useQuery({
+    const { data: exchangeRateData, isLoading: exchangeRateIsLoading } = useQuery({
         queryKey: ['exchangeRate'],
         queryFn: fetchRateFromDB,
     });
 
     useUpbitWebsocket();
     //두나무의 환율 api 가져오기
-    const fetchExchangeRate = async () => {
-        const result = await axios.get('https://quotation-api-cdn.dunamu.com/v1/forex/recent?codes=FRX.KRWUSD')
-        console.log("환율", result.data);
-        console.log("야호", result.data[0].basePrice)
-        setExchangeRate(result.data[0].basePrice)
-        //axios.post('')
-        return { basePrice: result.data[0].basePrice, date: result.data[0].date };
+    // const fetchExchangeRate = async () => {
+    //     const result = await axios.get('https://quotation-api-cdn.dunamu.com/v1/forex/recent?codes=FRX.KRWUSD')
+    //     //이거 서버에서 요청하게 바꿔버리자 ,,
+    //     console.log("", result.data);
+    //     console.log("", result.data[0].basePrice)
+    //     setExchangeRate(result.data[0].basePrice)
+    //     //axios.post('')
+    //     return { basePrice: result.data[0].basePrice, date: result.data[0].date };
+    // }
+    const fetchImsi = async () => {
+        try {
+            const rate = await axios.get(`https://v6.exchangerate-api.com/v6/d1a33935a34a3bab03dd52ce/latest/USD`)
+            const today = dayjs().format('YYYY-MM-DD');
+            console.log("exchangerate api에서 가져옴", rate.data.conversion_rates.KRW, today);
+            return { basePrice: rate.data.conversion_rates.KRW, date: today };
+        } catch (error) {
+            console.log("exchangerate api 에서 에러", error);
+        }
     }
     useEffect(() => {
         //fetchRateFromDB();
@@ -114,6 +100,9 @@ export const KimchiPremium = () => {
             console.log("훔훔1", latestRate[0]);
             console.log("훔훔3", dayjs(latestRate[0].date))
 
+            //여기서 하면 되나;; --> 이게 아니라 리액트쿼리로 가져온거 써야지 .. ;;
+            setRate(latestRate[0].baseprice)
+
             const lastUpdated = latestRate[0]?.date ? dayjs(latestRate[0].date) : null;
             console.log("훔훔2", lastUpdated);
             const now = dayjs();
@@ -121,17 +110,23 @@ export const KimchiPremium = () => {
             //생각해보니까 이거 주말엔 없던데..ㅔ;;
             //환율의 생성? 날짜 말고 나한테 보낸날짜를 저장하면 될거같기도..
             if (!lastUpdated || now.diff(lastUpdated, 'day') >= 1) {
-                console.log("훔훔4  이거나오면안됨")
-                const rate = await fetchExchangeRate();
-                console.log("api에서 받은 환율, 날짜", rate.basePrice, rate.date)
-                await saveRateInDB({ baseprice: rate.basePrice, date: rate.date });
+                console.log(" 이거하루에 한번만 나와야됨")
+                const rate = await fetchImsi();
+                console.log("", rate);
+                console.log("api에서 받은 환율, 날짜", rate?.basePrice, rate?.date)
+                await saveRateInDB({ baseprice: rate?.basePrice, date: rate?.date });
                 queryClient.invalidateQueries({ queryKey: ['exchangeRate'] });
+                //여기서 또 하면될듯..
+                //setRate()
             }
         }
         fetchAndSaveRate();
     }, [queryClient])
 
-    useEffect(() => { console.log("리액트 쿼리로 받은 환율", data) }, [data])
+    useEffect(() => {
+        console.log("리액트 쿼리로 받은 환율", exchangeRateData);
+        console.log("", rate)
+    }, [exchangeRateData, rate])
 
     /**
      * 1. 디비에서 최근 환율 가져오기 get rate
@@ -176,8 +171,8 @@ export const KimchiPremium = () => {
 
             //console.log("캐싱", upbitcoins);
             //upbitcoins.shortname += usdt@trade
-            //아.. shortname으로 하면안되네.. 개기찮아..
-            const upbitdata = upbitcoins.map((item: any) => item.shortname.toLowerCase() + "usdt@trade")
+
+            //const upbitdata = upbitcoins.map((item: any) => item.shortname.toLowerCase() + "usdt@trade")
             const upbitKrwData = upbitcoins.filter((item: any) => (
                 item.ticker.startsWith("KRW-")
             ))
@@ -185,19 +180,9 @@ export const KimchiPremium = () => {
             console.log(upbitKrwShortname.length);
             setUpbitShortName(upbitKrwShortname);   //이거 krw만 보내도록 바꿔야
 
-            setUpbitBinance(upbitKrwData);
+            //setUpbitBinance(upbitKrwData);
 
-            /**
-             * 1. 캐싱한 데이터에서 krw에 해당하는 코인의 shortname을 배열로 만든다 --> 완
-             * 2. 바이낸스로 보낸다 --> 완
-             * 3. 바이낸스에서 받은 데이터를 setUpbitBinance에 매핑한다.
-             * 4. 원화로 바꿔서 렌더링(바이낸스 실시간데이터)
-             * 
-             * 5.  리덕스에 업비트 실시간데이터 저장한다. 
-             * 6. 4의 순서에 맞춰서 렌더링(거래대금순)
-             * 
-             * 7. 무한스크롤 구현
-             */
+
 
         }
     }, [upbitcoins, reduxItems])
@@ -216,7 +201,7 @@ export const KimchiPremium = () => {
         //     ws.close();
         // }
         const ws = new WebSocket('wss://stream.binance.com:9443/ws');
-        let isSubscribed = true;
+        //let isSubscribed = true;
 
         ws.onopen = () => {
             console.log("WebSocket connection established.");
@@ -241,16 +226,16 @@ export const KimchiPremium = () => {
             console.log("", data.s)
 
             // data.s가 존재하고, USDT를 포함하는지 확인
-            if (exchangeRate && data.s && data.s.includes("USDT")) {
+            if (exchangeRateData && data.s && data.s.includes("USDT")) {
                 const symbol = data.s.split("USDT")[0];
                 console.log("바이낸스", symbol, "가격: ", data.p);
-                setUpbitBinance(prev => prev.map((item: any) =>
-                    (item.shortname === symbol)
-                        ? {
-                            ...item,
-                            trade_price: data.p
-                        } : item
-                ))
+                // setUpbitBinance(prev => prev.map((item: any) =>
+                //     (item.shortname === symbol)
+                //         ? {
+                //             ...item,
+                //             trade_price: data.p
+                //         } : item
+                // ))
 
 
 
@@ -258,7 +243,7 @@ export const KimchiPremium = () => {
                 setKimchi(prev => prev.map((item: any) =>
                     (item.shortname === symbol) ? {
                         ...item,
-                        binance_trade_price: data.p * exchangeRate,
+                        binance_trade_price: data.p * exchangeRateData[0].baseprice,
                     } :
                         item
                 ))
@@ -295,7 +280,7 @@ export const KimchiPremium = () => {
         };
 
         return () => {
-            isSubscribed = false;
+            //isSubscribed = false;
             ws.close();
         };
     }, [upbitshortname, exchangeRate])//upbitBinance도 deps에 넣으니까 소켓오류남
@@ -304,7 +289,7 @@ export const KimchiPremium = () => {
     }
     //아.. 비교할땐 업비트의 usdt랑 비교해야겠네.. 아님 krw 변환해도될지도..
     if (upbitLoading) return <div>로딩중</div>
-    if (upbitLoading) return <div>환율 로딩중</div>
+    if (exchangeRateIsLoading) return <div>환율 로딩중</div>
 
     return (
         <div className="container mx-auto px-64 mt-16">
@@ -344,6 +329,8 @@ export const KimchiPremium = () => {
                     </svg>
                 </button>
             </div>
+            <div>오늘의 환율은? {exchangeRateData[0].baseprice} 디비에 저장된 날짜는? {exchangeRateData[0].date}</div>
+
             <div>
                 <table className="min-w-full mt-20">
                     <thead>
