@@ -76,11 +76,11 @@ export const Theme = () => {
         }
 
     }, [isClicked])
-    const imsiSaveCoin = async () => {
-        const result = await axios.get('https://reactcrypto-server-production.up.railway.app/api/theme')
+    // const imsiSaveCoin = async () => {
+    //     const result = await axios.get('https://reactcrypto-server-production.up.railway.app/api/theme')
 
-        console.log('디비저장', result.data);
-    }
+    //     console.log('디비저장', result.data);
+    // }
 
     if (upbitLoading) return <div>loading...</div>
     if (!reduxThemes) return <div>리덕스로딩</div>
@@ -100,7 +100,7 @@ export const Theme = () => {
                             테마별 평균 가격은 업비트의 가격으로 하며 <br />매일 오전 9시 기준으로 업데이트됩니다
                         </div>}
                 </div>
-                <button onClick={imsiSaveCoin}>db저장용 버튼</button>
+                {/* <button onClick={imsiSaveCoin}>db저장용 버튼</button> */}
 
                 <div className="space-y-6 ">
 
